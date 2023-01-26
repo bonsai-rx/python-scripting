@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Title>Bonsai - Python.NET Scripting Library</Title>
+    <Description>Bonsai Scripting Library for interfacing with Python.NET.</Description>
+    <PackageTags>Bonsai Rx Scripting Python Python.NET</PackageTags>
+    <TargetFramework>net472</TargetFramework>
+    <VersionPrefix>0.1.0</VersionPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bonsai.Core" Version="2.7.0" />
+    <PackageReference Include="Bonsai.System" Version="2.7.0" />
+    <PackageReference Include="pythonnet" Version="3.0.1" />
+  </ItemGroup>
+
+</Project>
