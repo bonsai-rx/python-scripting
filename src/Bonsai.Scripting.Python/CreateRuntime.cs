@@ -5,10 +5,11 @@ using System.Reactive.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    [DefaultProperty(nameof(PythonHome))]
     public class CreateRuntime : Source<RuntimeManager>
     {
         [Editor("Bonsai.Design.FolderNameEditor, Bonsai.Design", DesignTypes.UITypeEditor)]
-        public string PythonPath { get; set; }
+        public string PythonHome { get; set; }
 
         public override IObservable<RuntimeManager> Generate()
         {
@@ -16,7 +17,7 @@ namespace Bonsai.Scripting.Python
             {
                 var disposable = SubjectManager.ReserveSubject();
                 var subscription = disposable.Subject.SubscribeSafe(observer);
-                var runtime = new RuntimeManager(PythonPath, disposable.Subject);
+                var runtime = new RuntimeManager(PythonHome, disposable.Subject);
                 return new CompositeDisposable
                 {
                     subscription,

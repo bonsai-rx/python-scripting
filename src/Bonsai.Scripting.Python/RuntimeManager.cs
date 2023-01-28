@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Bonsai.Resources;
@@ -13,14 +14,14 @@ namespace Bonsai.Scripting.Python
         readonly IObserver<RuntimeManager> runtimeObserver;
         IntPtr threadState;
 
-        internal RuntimeManager(string pythonPath, IObserver<RuntimeManager> observer)
+        internal RuntimeManager(string path, IObserver<RuntimeManager> observer)
         {
             runtimeScheduler = new EventLoopScheduler();
             runtimeResources = new ResourceManager();
             runtimeObserver = observer;
             Schedule(() =>
             {
-                Initialize(pythonPath);
+                Initialize(path);
                 threadState = PythonEngine.BeginAllowThreads();
                 using (Py.GIL())
                 {
@@ -47,15 +48,25 @@ namespace Bonsai.Scripting.Python
             });
         }
 
-        static void Initialize(string pythonPath)
+        static void Initialize(string path)
         {
             if (!PythonEngine.IsInitialized)
             {
-                var path = Environment.GetEnvironmentVariable("PATH").TrimEnd(';');
-                path = string.IsNullOrEmpty(path) ? pythonPath : path + ";" + pythonPath;
-                Environment.SetEnvironmentVariable("PATH", path, EnvironmentVariableTarget.Process);
-                Runtime.PythonDLL = "python39.dll";
-                PythonEngine.PythonHome = pythonPath;
+                if (string.IsNullOrEmpty(path))
+                {
+                    path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+                }
+
+                path = Path.GetFullPath(path);
+                var pythonHome = EnvironmentHelper.GetPythonHome(path);
+                Runtime.PythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome);
+                EnvironmentHelper.SetRuntimePath(pythonHome);
+                PythonEngine.PythonHome = pythonHome;
+                if (pythonHome != path)
+                {
+                    var version = PythonEngine.Version;
+                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(path);
+                }
                 PythonEngine.Initialize();
             }
         }
