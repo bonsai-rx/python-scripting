@@ -84,7 +84,10 @@ namespace Bonsai.Scripting.Python
         {
             Schedule(() =>
             {
-                DisposeInternal();
+                if (PythonEngine.IsInitialized)
+                {
+                    DisposeInternal();
+                }
                 runtimeScheduler.Dispose();
             });
         }
