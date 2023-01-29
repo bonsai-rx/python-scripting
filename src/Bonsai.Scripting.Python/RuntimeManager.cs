@@ -87,6 +87,7 @@ namespace Bonsai.Scripting.Python
                 if (PythonEngine.IsInitialized)
                 {
                     DisposeInternal();
+                    PythonEngine.Shutdown();
                 }
                 runtimeScheduler.Dispose();
             });
