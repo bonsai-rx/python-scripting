@@ -7,6 +7,11 @@ using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Provides functionality for initializing and managing resources held
+    /// by the Python runtime and an interface for scheduling work in the
+    /// runtime scheduler.
+    /// </summary>
     public class RuntimeManager : IDisposable
     {
         readonly EventLoopScheduler runtimeScheduler;
@@ -80,6 +85,10 @@ namespace Bonsai.Scripting.Python
             PythonEngine.EndAllowThreads(threadState);
         }
 
+        /// <summary>
+        /// Shutdown the thread and release all resources associated with the Python runtime.
+        /// All remaining work scheduled after shutdown is abandoned.
+        /// </summary>
         public void Dispose()
         {
             Schedule(() =>
