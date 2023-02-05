@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using Bonsai.Resources;
 using Python.Runtime;
@@ -22,6 +22,15 @@ namespace Bonsai.Scripting.Python.Configuration
                 scope.Exec(code);
             }
             return scope;
+        }
+
+        public override string ToString()
+        {
+            var script = Script;
+            var baseName = Name;
+            if (string.IsNullOrEmpty(baseName)) baseName = nameof(ScopeConfiguration);
+            if (string.IsNullOrEmpty(script)) return baseName;
+            else return $"{baseName} [{script}]";
         }
     }
 }
