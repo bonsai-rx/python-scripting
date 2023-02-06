@@ -1,4 +1,5 @@
 ﻿using Bonsai.Resources;
+using Bonsai.Scripting.Python.Configuration;
 using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
@@ -6,13 +7,13 @@ namespace Bonsai.Scripting.Python
     class ScopeNameConverter : ResourceNameConverter
     {
         public ScopeNameConverter()
-            : base(typeof(PyModule))
+            : base(typeof(PyObject))
         {
         }
 
         protected override bool IsResourceSupported(IResourceConfiguration resource)
         {
-            return base.IsResourceSupported(resource);
+            return resource is CreateModule;
         }
     }
 }

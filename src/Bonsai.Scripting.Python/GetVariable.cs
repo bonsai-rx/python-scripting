@@ -7,27 +7,27 @@ using Python.Runtime;
 namespace Bonsai.Scripting.Python
 {
     /// <summary>
-    /// Represents an operator that gets the value of a Python runtime variable in the
-    /// specified scope.
+    /// Represents an operator that gets the value of a variable in the specified
+    /// Python module.
     /// </summary>
-    [Description("Gets the value of a Python runtime variable in the specified scope.")]
+    [Description("Gets the value of a variable in the specified Python module.")]
     public class GetVariable : Source<PyObject>
     {
         /// <summary>
-        /// Gets or sets the name of the Python runtime scope containing the variable.
+        /// Gets or sets the name of the Python module containing the variable.
         /// </summary>
-        [TypeConverter(typeof(ScopeNameConverter))]
-        [Description("The name of the Python runtime scope containing the variable.")]
-        public string ScopeName { get; set; }
+        [TypeConverter(typeof(ModuleNameConverter))]
+        [Description("The name of the Python module containing the variable.")]
+        public string ModuleName { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the scope variable to get the value of.
+        /// Gets or sets the name of the variable to get the value of.
         /// </summary>
-        [Description("The name of the scope variable to get the value of.")]
+        [Description("The name of the variable to get the value of.")]
         public string VariableName { get; set; }
 
         /// <summary>
-        /// Gets the value of a Python runtime variable in the specified scope and
+        /// Gets the value of a variable in the specified Python module and
         /// surfaces it through an observable sequence.
         /// </summary>
         /// <returns>
@@ -38,13 +38,13 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyModule>(ScopeName);
-                return Observable.Return(scope.Get(VariableName));
+                var scope = runtime.Resources.Load<PyObject>(ModuleName);
+                return Observable.Return(scope.GetAttr(VariableName));
             });
         }
 
         /// <summary>
-        /// Gets the value of a Python runtime variable in the specified scope
+        /// Gets the value of a variable in the specified Python module
         /// whenever an observable sequence emits a notification.
         /// </summary>
         /// <typeparam name="TSource">
@@ -61,12 +61,12 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyModule>(ScopeName);
+                var scope = runtime.Resources.Load<PyObject>(ModuleName);
                 return source.Select(_ =>
                 {
                     using (Py.GIL())
                     {
-                        return scope.Get(VariableName);
+                        return scope.GetAttr(VariableName);
                     }
                 });
             });

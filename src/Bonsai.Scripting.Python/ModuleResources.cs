@@ -3,30 +3,33 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Xml.Serialization;
 using Bonsai.Resources;
 using Bonsai.Scripting.Python.Configuration;
 
 namespace Bonsai.Scripting.Python
 {
     /// <summary>
-    /// Represents an operator that creates a collection of scope resources to
+    /// Represents an operator that creates a collection of module resources to
     /// be loaded into the runtime resource manager.
     /// </summary>
-    [DefaultProperty(nameof(Scopes))]
-    [Description("Creates a collection of scope resources to be loaded into the runtime resource manager.")]
-    public class ScopeResources : ResourceLoader
+    [DefaultProperty(nameof(Resources))]
+    [Description("Creates a collection of module resources to be loaded into the runtime resource manager.")]
+    public class ModuleResources : ResourceLoader
     {
         /// <summary>
-        /// Gets the collection of scope resources to be loaded into the runtime resource manager.
+        /// Gets the collection of module resources to be loaded into the runtime resource manager.
         /// </summary>
+        [XmlArrayItem(typeof(CreateModule))]
+        [XmlArrayItem(typeof(ImportModule))]
         [Editor("Bonsai.Resources.Design.ResourceCollectionEditor, Bonsai.System.Design", DesignTypes.UITypeEditor)]
-        [Description("The collection of scope resources to be loaded into the runtime resource manager.")]
-        public ScopeConfigurationCollection Scopes { get; } = new ScopeConfigurationCollection();
+        [Description("The collection of module resources to be loaded into the runtime resource manager.")]
+        public ModuleResourceCollection Resources { get; } = new ModuleResourceCollection();
 
         /// <inheritdoc/>
         protected override IEnumerable<IResourceConfiguration> GetResources()
         {
-            return Scopes;
+            return Resources;
         }
 
         /// <summary>
