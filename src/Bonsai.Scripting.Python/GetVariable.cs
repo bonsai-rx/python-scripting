@@ -38,8 +38,8 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyObject>(ModuleName);
-                return Observable.Return(scope.GetAttr(VariableName));
+                var module = runtime.Resources.Load<PyObject>(ModuleName);
+                return Observable.Return(module.GetAttr(VariableName));
             });
         }
 
@@ -61,12 +61,12 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyObject>(ModuleName);
+                var module = runtime.Resources.Load<PyObject>(ModuleName);
                 return source.Select(_ =>
                 {
                     using (Py.GIL())
                     {
-                        return scope.GetAttr(VariableName);
+                        return module.GetAttr(VariableName);
                     }
                 });
             });

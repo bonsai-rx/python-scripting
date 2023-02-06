@@ -24,7 +24,7 @@ namespace Bonsai.Scripting.Python
         /// </summary>
         [TypeConverter(typeof(ModuleNameConverter))]
         [Description("The name of the Python module containing the method to invoke.")]
-        public string ScopeName { get; set; }
+        public string ModuleName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the method to invoke.
@@ -76,12 +76,12 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyObject>(ScopeName);
+                var module = runtime.Resources.Load<PyObject>(ModuleName);
                 return source.Select(value =>
                 {
                     using (Py.GIL())
                     {
-                        return scope.InvokeMethod(MethodName, selector(value));
+                        return module.InvokeMethod(MethodName, selector(value));
                     }
                 });
             });
