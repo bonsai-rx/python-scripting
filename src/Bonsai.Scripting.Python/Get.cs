@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Xml.Serialization;
 using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
@@ -15,11 +16,11 @@ namespace Bonsai.Scripting.Python
     public class Get : Source<PyObject>
     {
         /// <summary>
-        /// Gets or sets the name of the Python module containing the variable.
+        /// Gets or sets the Python module containing the variable.
         /// </summary>
-        [TypeConverter(typeof(ModuleNameConverter))]
-        [Description("The name of the Python module containing the variable.")]
-        public string ModuleName { get; set; }
+        [XmlIgnore]
+        [Description("The Python module containing the variable.")]
+        public PyModule Module { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the variable to get the value of.
@@ -39,8 +40,7 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Modules[ModuleName].Scope;
-                return Observable.Return(module.Get(VariableName));
+                return Observable.Return(Module.Get(VariableName));
             });
         }
 
@@ -62,12 +62,11 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Modules[ModuleName].Scope;
                 return source.Select(_ =>
                 {
                     using (Py.GIL())
                     {
-                        return module.Get(VariableName);
+                        return Module.Get(VariableName);
                     }
                 });
             });

@@ -15,14 +15,12 @@ namespace Bonsai.Scripting.Python
     public class RuntimeManager : IDisposable
     {
         readonly EventLoopScheduler runtimeScheduler;
-        readonly Dictionary<string, RuntimeModule> runtimeModules;
         readonly IObserver<RuntimeManager> runtimeObserver;
         IntPtr threadState;
 
         internal RuntimeManager(string path, IObserver<RuntimeManager> observer)
         {
             runtimeScheduler = new EventLoopScheduler();
-            runtimeModules = new Dictionary<string, RuntimeModule>();
             runtimeObserver = observer;
             Schedule(() =>
             {
@@ -34,9 +32,8 @@ namespace Bonsai.Scripting.Python
 
         internal static IObservable<RuntimeManager> RuntimeSource { get; } = Observable.Using(
             () => SubjectManager.ReserveSubject(),
-            disposable => disposable.Subject);
-
-        internal Dictionary<string, RuntimeModule> Modules => runtimeModules;
+            disposable => disposable.Subject)
+            .Take(1);
 
         internal void Schedule(Action action)
         {
@@ -85,7 +82,6 @@ namespace Bonsai.Scripting.Python
                 {
                     PythonEngine.EndAllowThreads(threadState);
                     PythonEngine.Shutdown();
-                    runtimeModules.Clear();
                 }
                 runtimeScheduler.Dispose();
             });
