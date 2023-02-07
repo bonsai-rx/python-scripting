@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -39,7 +39,7 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Resources.Load<PyModule>(ModuleName);
+                var module = runtime.Modules[ModuleName].Scope;
                 return Observable.Return(module.Get(VariableName));
             });
         }
@@ -62,7 +62,7 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Resources.Load<PyModule>(ModuleName);
+                var module = runtime.Modules[ModuleName].Scope;
                 return source.Select(_ =>
                 {
                     using (Py.GIL())

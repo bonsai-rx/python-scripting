@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using Bonsai.Resources;
 using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
@@ -15,23 +15,20 @@ namespace Bonsai.Scripting.Python
     public class RuntimeManager : IDisposable
     {
         readonly EventLoopScheduler runtimeScheduler;
-        readonly ResourceManager runtimeResources;
+        readonly Dictionary<string, RuntimeModule> runtimeModules;
         readonly IObserver<RuntimeManager> runtimeObserver;
         IntPtr threadState;
 
         internal RuntimeManager(string path, IObserver<RuntimeManager> observer)
         {
             runtimeScheduler = new EventLoopScheduler();
-            runtimeResources = new ResourceManager();
+            runtimeModules = new Dictionary<string, RuntimeModule>();
             runtimeObserver = observer;
             Schedule(() =>
             {
                 Initialize(path);
                 threadState = PythonEngine.BeginAllowThreads();
-                using (Py.GIL())
-                {
-                    observer.OnNext(this);
-                }
+                observer.OnNext(this);
             });
         }
 
@@ -39,7 +36,7 @@ namespace Bonsai.Scripting.Python
             () => SubjectManager.ReserveSubject(),
             disposable => disposable.Subject);
 
-        internal ResourceManager Resources => runtimeResources;
+        internal Dictionary<string, RuntimeModule> Modules => runtimeModules;
 
         internal void Schedule(Action action)
         {
@@ -76,15 +73,6 @@ namespace Bonsai.Scripting.Python
             }
         }
 
-        void DisposeInternal()
-        {
-            using (Py.GIL())
-            {
-                Resources.Dispose();
-            }
-            PythonEngine.EndAllowThreads(threadState);
-        }
-
         /// <summary>
         /// Shutdown the thread and release all resources associated with the Python runtime.
         /// All remaining work scheduled after shutdown is abandoned.
@@ -95,8 +83,9 @@ namespace Bonsai.Scripting.Python
             {
                 if (PythonEngine.IsInitialized)
                 {
-                    DisposeInternal();
+                    PythonEngine.EndAllowThreads(threadState);
                     PythonEngine.Shutdown();
+                    runtimeModules.Clear();
                 }
                 runtimeScheduler.Dispose();
             });
