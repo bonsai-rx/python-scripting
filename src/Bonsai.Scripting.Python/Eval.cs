@@ -8,17 +8,17 @@ namespace Bonsai.Scripting.Python
 {
     /// <summary>
     /// Represents an operator that evaluates a Python expression in the specified
-    /// runtime scope.
+    /// top-level module.
     /// </summary>
     [Description("Evaluates a Python expression in the specified runtime scope.")]
     public class Eval : Combinator<PyObject>
     {
         /// <summary>
-        /// Gets or sets the name of the runtime scope on which to evaluate the Python expression.
+        /// Gets or sets the name of the top-level module on which to evaluate the Python expression.
         /// </summary>
-        [TypeConverter(typeof(ScopeNameConverter))]
-        [Description("The name of the runtime scope on which to evaluate the Python expression.")]
-        public string ScopeName { get; set; }
+        [TypeConverter(typeof(ModuleNameConverter))]
+        [Description("The name of the top-level module on which to evaluate the Python expression.")]
+        public string ModuleName { get; set; }
 
         /// <summary>
         /// Gets or sets the Python expression to evaluate.
@@ -27,7 +27,7 @@ namespace Bonsai.Scripting.Python
         public string Expression { get; set; }
 
         /// <summary>
-        /// Evaluates a Python expression in the specified runtime scope whenever an
+        /// Evaluates a Python expression in the specified top-level module whenever an
         /// observable sequence emits a notification.
         /// </summary>
         /// <typeparam name="TSource">
@@ -44,12 +44,12 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyModule>(ScopeName);
+                var module = runtime.Resources.Load<PyModule>(ModuleName);
                 return source.Select(_ =>
                 {
                     using (Py.GIL())
                     {
-                        return scope.Eval(Expression);
+                        return module.Eval(Expression);
                     }
                 });
             });

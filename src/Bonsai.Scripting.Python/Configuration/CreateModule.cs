@@ -6,26 +6,26 @@ using Python.Runtime;
 namespace Bonsai.Scripting.Python.Configuration
 {
     /// <summary>
-    /// Provides configuration and loading functionality for Python global scopes.
+    /// Provides configuration and loading functionality for top-level modules.
     /// </summary>
-    public class ScopeConfiguration : ResourceConfiguration<PyModule>
+    public class CreateModule : ResourceConfiguration<PyModule>
     {
         /// <summary>
-        /// Gets or sets the name of the Python script file to run on scope initialization.
+        /// Gets or sets the path to the Python script file to run on module initialization.
         /// </summary>
         [FileNameFilter("Python Files (*.py)|*.py|All Files|*.*")]
-        [Description("The name of the Python script file to run on scope initialization.")]
+        [Description("The path to the Python script file to run on module initialization.")]
         [Editor("Bonsai.Design.OpenFileNameEditor, Bonsai.Design", DesignTypes.UITypeEditor)]
         [TypeConverter(typeof(ResourceFileNameConverter))]
-        public string Script { get; set; }
+        public string ScriptPath { get; set; }
 
         /// <inheritdoc/>
         public override PyModule CreateResource(ResourceManager resourceManager)
         {
             var scope = Py.CreateScope(Name);
-            if (!string.IsNullOrEmpty(Script))
+            if (!string.IsNullOrEmpty(ScriptPath))
             {
-                var code = File.ReadAllText(Script);
+                var code = File.ReadAllText(ScriptPath);
                 scope.Exec(code);
             }
             return scope;
@@ -34,9 +34,9 @@ namespace Bonsai.Scripting.Python.Configuration
         /// <inheritdoc/>
         public override string ToString()
         {
-            var script = Script;
+            var script = ScriptPath;
             var baseName = Name;
-            if (string.IsNullOrEmpty(baseName)) baseName = nameof(ScopeConfiguration);
+            if (string.IsNullOrEmpty(baseName)) baseName = nameof(CreateModule);
             if (string.IsNullOrEmpty(script)) return baseName;
             else return $"{baseName} [{script}]";
         }
