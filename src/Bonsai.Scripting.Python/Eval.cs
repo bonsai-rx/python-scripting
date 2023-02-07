@@ -10,6 +10,7 @@ namespace Bonsai.Scripting.Python
     /// Represents an operator that evaluates a Python expression in the specified
     /// top-level module.
     /// </summary>
+    [DefaultProperty(nameof(Expression))]
     [Description("Evaluates a Python expression in the specified runtime scope.")]
     public class Eval : Combinator<PyObject>
     {

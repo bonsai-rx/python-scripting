@@ -10,6 +10,7 @@ namespace Bonsai.Scripting.Python
     /// Represents an operator that adds or updates a Python runtime variable in the
     /// specified top-level module.
     /// </summary>
+    [DefaultProperty(nameof(VariableName))]
     [Description("Adds or updates a Python runtime variable in the specified top-level module.")]
     public class Set : Sink
     {

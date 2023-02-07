@@ -10,6 +10,7 @@ namespace Bonsai.Scripting.Python
     /// Represents an operator that executes a Python script in the specified
     /// top-level module.
     /// </summary>
+    [DefaultProperty(nameof(Script))]
     [Description("Executes a Python script in the specified top-level module.")]
     public class Exec : Combinator<PyModule>
     {

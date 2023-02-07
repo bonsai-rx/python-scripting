@@ -10,6 +10,7 @@ namespace Bonsai.Scripting.Python
     /// Represents an operator that gets the value of a variable in the specified
     /// Python module.
     /// </summary>
+    [DefaultProperty(nameof(VariableName))]
     [Description("Gets the value of a variable in the specified Python module.")]
     public class Get : Source<PyObject>
     {
