@@ -50,7 +50,8 @@ namespace Bonsai.Scripting.Python
                 {
                     using (Py.GIL())
                     {
-                        return Module.Eval(Expression);
+                        var module = Module ?? runtime.MainModule;
+                        return module.Eval(Expression);
                     }
                 });
             });
@@ -73,6 +74,27 @@ namespace Bonsai.Scripting.Python
                 using (Py.GIL())
                 {
                     return module.Eval(Expression);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Evaluates an expression in the main module of the Python runtime.
+        /// </summary>
+        /// <param name="source">
+        /// A sequence containing the Python runtime in which to evaluate the expression.
+        /// </param>
+        /// <returns>
+        /// A sequence of <see cref="PyObject"/> handles representing the result
+        /// of evaluating the Python expression.
+        /// </returns>
+        public IObservable<PyObject> Process(IObservable<RuntimeManager> source)
+        {
+            return source.Select(runtime =>
+            {
+                using (Py.GIL())
+                {
+                    return runtime.MainModule.Eval(Expression);
                 }
             });
         }

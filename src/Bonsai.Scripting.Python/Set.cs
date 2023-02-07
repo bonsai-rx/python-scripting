@@ -51,7 +51,8 @@ namespace Bonsai.Scripting.Python
                 {
                     using (Py.GIL())
                     {
-                        Module.Set(VariableName, value);
+                        var module = Module ?? runtime.MainModule;
+                        module.Set(VariableName, value);
                     }
                 });
             });

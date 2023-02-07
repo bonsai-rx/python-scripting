@@ -26,9 +26,15 @@ namespace Bonsai.Scripting.Python
             {
                 Initialize(path);
                 threadState = PythonEngine.BeginAllowThreads();
+                using (Py.GIL())
+                {
+                    MainModule = Py.CreateScope();
+                }
                 observer.OnNext(this);
             });
         }
+
+        internal PyModule MainModule { get; private set; }
 
         internal static IObservable<RuntimeManager> RuntimeSource { get; } = Observable.Using(
             () => SubjectManager.ReserveSubject(),
@@ -80,6 +86,10 @@ namespace Bonsai.Scripting.Python
             {
                 if (PythonEngine.IsInitialized)
                 {
+                    using (Py.GIL())
+                    {
+                        MainModule.Dispose();
+                    }
                     PythonEngine.EndAllowThreads(threadState);
                     PythonEngine.Shutdown();
                 }

@@ -40,7 +40,8 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                return Observable.Return(Module.Get(VariableName));
+                var module = Module ?? runtime.MainModule;
+                return Observable.Return(module.Get(VariableName));
             });
         }
 
@@ -66,7 +67,8 @@ namespace Bonsai.Scripting.Python
                 {
                     using (Py.GIL())
                     {
-                        return Module.Get(VariableName);
+                        var module = Module ?? runtime.MainModule;
+                        return module.Get(VariableName);
                     }
                 });
             });
@@ -92,6 +94,29 @@ namespace Bonsai.Scripting.Python
                 using (Py.GIL())
                 {
                     return module.Get(VariableName);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Gets the value of the specified variable in the main module of the
+        /// Python runtime.
+        /// </summary>
+        /// <param name="source">
+        /// A sequence containing the Python runtime from which to get the
+        /// value of the specified variable.
+        /// </param>
+        /// <returns>
+        /// A sequence of <see cref="PyObject"/> handles representing the value
+        /// of the specified variable in the main module of the Python runtime.
+        /// </returns>
+        public IObservable<PyObject> Process(IObservable<RuntimeManager> source)
+        {
+            return source.Select(runtime =>
+            {
+                using (Py.GIL())
+                {
+                    return runtime.MainModule.Get(VariableName);
                 }
             });
         }
