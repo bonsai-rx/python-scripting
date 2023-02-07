@@ -8,27 +8,27 @@ namespace Bonsai.Scripting.Python
 {
     /// <summary>
     /// Represents an operator that adds or updates a Python runtime variable in the
-    /// specified scope.
+    /// specified top-level module.
     /// </summary>
-    [Description("Adds or updates a Python runtime variable in the specified scope.")]
-    public class SetVariable : Sink
+    [Description("Adds or updates a Python runtime variable in the specified top-level module.")]
+    public class Set : Sink
     {
         /// <summary>
-        /// Gets or sets the name of the Python runtime scope containing the variable.
+        /// Gets or sets the name of the Python top-level module containing the variable.
         /// </summary>
-        [TypeConverter(typeof(ScopeNameConverter))]
-        [Description("The name of the Python runtime scope containing the variable.")]
-        public string ScopeName { get; set; }
+        [TypeConverter(typeof(ModuleNameConverter))]
+        [Description("The name of the Python top-level module containing the variable.")]
+        public string ModuleName { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the scope variable to add or update the value of.
+        /// Gets or sets the name of the variable to add or update the value of.
         /// </summary>
-        [Description("The name of the scope variable to add or update the value of.")]
+        [Description("The name of the variable to add or update the value of.")]
         public string VariableName { get; set; }
 
         /// <summary>
-        /// Adds or updates a Python runtime variable in the specified scope with
-        /// the values from an observable sequence.
+        /// Adds or updates a Python runtime variable in the specified top-level module
+        /// with the values from an observable sequence.
         /// </summary>
         /// <typeparam name="TSource">
         /// The type of the values in the <paramref name="source"/> sequence.
@@ -45,12 +45,12 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var scope = runtime.Resources.Load<PyModule>(ScopeName);
+                var module = runtime.Resources.Load<PyModule>(ModuleName);
                 return source.Do(value =>
                 {
                     using (Py.GIL())
                     {
-                        scope.Set(VariableName, value);
+                        module.Set(VariableName, value);
                     }
                 });
             });
