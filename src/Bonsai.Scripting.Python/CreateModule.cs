@@ -34,36 +34,19 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public override IObservable<PyModule> Generate()
         {
-            return Generate(RuntimeManager.RuntimeSource);
-        }
-
-        /// <summary>
-        /// Generates an observable sequence that contains the created top-level modules.
-        /// </summary>
-        /// <param name="source">
-        /// An observable sequence of the <see cref="RuntimeManager"/> in which to create
-        /// the top-level module.
-        /// </param>
-        /// <returns>
-        /// A sequence of <see cref="PyModule"/> objects representing all the created
-        /// top-level modules.
-        /// </returns>
-        public IObservable<PyModule> Generate(IObservable<RuntimeManager> source)
-        {
-            return source.SelectMany(runtime => Observable.Create<PyModule>(observer =>
+            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
                 using (Py.GIL())
                 {
-                    var module = new RuntimeModule(runtime, Name);
+                    var module = new DynamicModule(Name ?? string.Empty);
                     if (!string.IsNullOrEmpty(ScriptPath))
                     {
                         var code = File.ReadAllText(ScriptPath);
-                        module.Scope.Exec(code);
+                        module.Exec(code);
                     }
-                    observer.OnNext(module.Scope);
-                    return module;
+                    return Observable.Return(module);
                 }
-            }));
+            });
         }
     }
 }

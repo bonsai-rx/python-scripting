@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Xml.Serialization;
 using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
@@ -15,11 +16,11 @@ namespace Bonsai.Scripting.Python
     public class Set : Sink
     {
         /// <summary>
-        /// Gets or sets the name of the Python top-level module containing the variable.
+        /// Gets or sets the Python top-level module containing the variable.
         /// </summary>
-        [TypeConverter(typeof(ModuleNameConverter))]
-        [Description("The name of the Python top-level module containing the variable.")]
-        public string ModuleName { get; set; }
+        [XmlIgnore]
+        [Description("The Python top-level module containing the variable.")]
+        public PyModule Module { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the variable to add or update the value of.
@@ -46,12 +47,11 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Modules[ModuleName].Scope;
                 return source.Do(value =>
                 {
                     using (Py.GIL())
                     {
-                        module.Set(VariableName, value);
+                        Module.Set(VariableName, value);
                     }
                 });
             });

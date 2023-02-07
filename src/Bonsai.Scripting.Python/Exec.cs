@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Xml.Serialization;
 using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
@@ -15,11 +16,11 @@ namespace Bonsai.Scripting.Python
     public class Exec : Combinator<PyModule>
     {
         /// <summary>
-        /// Gets or sets the name of the top-level module on which to execute the Python script.
+        /// Gets or sets the top-level module on which to execute the Python script.
         /// </summary>
-        [TypeConverter(typeof(ModuleNameConverter))]
-        [Description("The name of the top-level module on which to execute the Python script.")]
-        public string ModuleName { get; set; }
+        [XmlIgnore]
+        [Description("The top-level module on which to execute the Python script.")]
+        public PyModule Module { get; set; }
 
         /// <summary>
         /// Gets or sets the Python script to evaluate.
@@ -46,12 +47,11 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Modules[ModuleName].Scope;
                 return source.Select(_ =>
                 {
                     using (Py.GIL())
                     {
-                        return module.Exec(Script);
+                        return Module.Exec(Script);
                     }
                 });
             });
