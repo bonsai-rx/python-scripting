@@ -51,7 +51,8 @@ namespace Bonsai.Scripting.Python
                 {
                     using (Py.GIL())
                     {
-                        return Module.Exec(Script);
+                        var module = Module ?? runtime.MainModule;
+                        return module.Exec(Script);
                     }
                 });
             });
@@ -75,6 +76,27 @@ namespace Bonsai.Scripting.Python
                 using (Py.GIL())
                 {
                     return module.Exec(Script);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Executes a script in the main module of the Python runtime.
+        /// </summary>
+        /// <param name="source">
+        /// A sequence containing the Python runtime in which to execute the script.
+        /// </param>
+        /// <returns>
+        /// A sequence containing the <see cref="PyModule"/> object representing
+        /// the top-level module where the Python script was executed.
+        /// </returns>
+        public IObservable<PyModule> Process(IObservable<RuntimeManager> source)
+        {
+            return source.Select(runtime =>
+            {
+                using (Py.GIL())
+                {
+                    return runtime.MainModule.Exec(Script);
                 }
             });
         }
