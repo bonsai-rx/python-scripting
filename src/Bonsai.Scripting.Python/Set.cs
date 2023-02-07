@@ -46,7 +46,7 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                var module = runtime.Resources.Load<PyModule>(ModuleName);
+                var module = runtime.Modules[ModuleName].Scope;
                 return source.Do(value =>
                 {
                     using (Py.GIL())
