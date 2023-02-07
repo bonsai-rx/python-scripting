@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -18,17 +17,17 @@ namespace Bonsai.Scripting.Python
         readonly IObserver<RuntimeManager> runtimeObserver;
         IntPtr threadState;
 
-        internal RuntimeManager(string path, IObserver<RuntimeManager> observer)
+        internal RuntimeManager(string pythonHome, string scriptPath, IObserver<RuntimeManager> observer)
         {
             runtimeScheduler = new EventLoopScheduler();
             runtimeObserver = observer;
             Schedule(() =>
             {
-                Initialize(path);
+                Initialize(pythonHome);
                 threadState = PythonEngine.BeginAllowThreads();
                 using (Py.GIL())
                 {
-                    MainModule = Py.CreateScope();
+                    MainModule = CreateModule(scriptPath: scriptPath);
                 }
                 observer.OnNext(this);
             });
@@ -40,6 +39,20 @@ namespace Bonsai.Scripting.Python
             () => SubjectManager.ReserveSubject(),
             disposable => disposable.Subject)
             .Take(1);
+
+        internal static DynamicModule CreateModule(string name = "", string scriptPath = "")
+        {
+            using (Py.GIL())
+            {
+                var module = new DynamicModule(name);
+                if (!string.IsNullOrEmpty(scriptPath))
+                {
+                    var code = File.ReadAllText(scriptPath);
+                    module.Exec(code);
+                }
+                return module;
+            }
+        }
 
         internal void Schedule(Action action)
         {

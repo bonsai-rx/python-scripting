@@ -36,16 +36,8 @@ namespace Bonsai.Scripting.Python
         {
             return RuntimeManager.RuntimeSource.SelectMany(runtime =>
             {
-                using (Py.GIL())
-                {
-                    var module = new DynamicModule(Name ?? string.Empty);
-                    if (!string.IsNullOrEmpty(ScriptPath))
-                    {
-                        var code = File.ReadAllText(ScriptPath);
-                        module.Exec(code);
-                    }
-                    return Observable.Return(module);
-                }
+                var module = RuntimeManager.CreateModule(Name ?? string.Empty, ScriptPath);
+                return Observable.Return(module);
             });
         }
     }
