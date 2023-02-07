@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -53,6 +53,27 @@ namespace Bonsai.Scripting.Python
                         return module.Eval(Expression);
                     }
                 });
+            });
+        }
+
+        /// <summary>
+        /// Evaluates a Python expression in an observable sequence of modules.
+        /// </summary>
+        /// <param name="source">
+        /// The sequence of modules in which to evaluate the Python expression.
+        /// </param>
+        /// <returns>
+        /// A sequence of <see cref="PyObject"/> handles representing the result
+        /// of evaluating the Python expression.
+        /// </returns>
+        public IObservable<PyObject> Process(IObservable<PyModule> source)
+        {
+            return source.Select(module =>
+            {
+                using (Py.GIL())
+                {
+                    return module.Eval(Expression);
+                }
             });
         }
     }

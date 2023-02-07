@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -70,6 +70,30 @@ namespace Bonsai.Scripting.Python
                         return module.Get(VariableName);
                     }
                 });
+            });
+        }
+
+        /// <summary>
+        /// Gets the value of the specified variable in each of the Python modules
+        /// in an observable sequence.
+        /// </summary>
+        /// <param name="source">
+        /// The sequence of modules from which to get the value of the specified
+        /// variable.
+        /// </param>
+        /// <returns>
+        /// A sequence of <see cref="PyObject"/> handles representing the value
+        /// of the specified variable for each of the modules in the
+        /// <paramref name="source"/> sequence.
+        /// </returns>
+        public IObservable<PyObject> Process(IObservable<PyModule> source)
+        {
+            return source.Select(module =>
+            {
+                using (Py.GIL())
+                {
+                    return module.Get(VariableName);
+                }
             });
         }
     }
