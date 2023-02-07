@@ -25,6 +25,14 @@ namespace Bonsai.Scripting.Python
         public string PythonHome { get; set; }
 
         /// <summary>
+        /// Gets or sets the path to the Python script file to run on runtime initialization.
+        /// </summary>
+        [FileNameFilter("Python Files (*.py)|*.py|All Files|*.*")]
+        [Description("The path to the Python script file to run on runtime initialization.")]
+        [Editor("Bonsai.Design.OpenFileNameEditor, Bonsai.Design", DesignTypes.UITypeEditor)]
+        public string ScriptPath { get; set; }
+
+        /// <summary>
         /// Creates an observable sequence that initializes a Python runtime object which
         /// can be used to import modules, evaluate expressions, and pass data to and
         /// from a Python scope.
@@ -39,7 +47,7 @@ namespace Bonsai.Scripting.Python
             {
                 var disposable = SubjectManager.ReserveSubject();
                 var subscription = disposable.Subject.SubscribeSafe(observer);
-                var runtime = new RuntimeManager(PythonHome, disposable.Subject);
+                var runtime = new RuntimeManager(PythonHome, ScriptPath, disposable.Subject);
                 return new CompositeDisposable
                 {
                     subscription,
