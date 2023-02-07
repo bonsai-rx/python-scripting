@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -54,6 +54,28 @@ namespace Bonsai.Scripting.Python
                         return module.Exec(Script);
                     }
                 });
+            });
+        }
+
+        /// <summary>
+        /// Executes a Python script in an observable sequence of modules.
+        /// </summary>
+        /// <param name="source">
+        /// The sequence of modules in which to execute the Python script.
+        /// </param>
+        /// <returns>
+        /// An observable sequence that is identical to the <paramref name="source"/>
+        /// sequence but where there is an additional side effect of executing the
+        /// Python script in each of the <see cref="PyModule"/> objects.
+        /// </returns>
+        public IObservable<PyModule> Process(IObservable<PyModule> source)
+        {
+            return source.Select(module =>
+            {
+                using (Py.GIL())
+                {
+                    return module.Exec(Script);
+                }
             });
         }
     }
