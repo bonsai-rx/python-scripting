@@ -44,12 +44,20 @@ namespace Bonsai.Scripting.Python
             return path;
         }
 
-        public static string GetPythonPath(string path)
+        public static string GetPythonPath(string pythonHome, string path)
         {
             var basePath = PythonEngine.PythonPath;
+            if (string.IsNullOrEmpty(basePath))
+            {
+                var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
+                var pythonDLLs = Path.Combine(pythonHome, "DLLs");
+                var pythonLib = Path.Combine(pythonHome, "Lib");
+                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
+            }
+
             var sitePackages = Path.Combine(path, "Lib", "site-packages");
-            var prefix = !string.IsNullOrEmpty(basePath) ? basePath.TrimEnd(Path.PathSeparator) + Path.PathSeparator : string.Empty;
-            return $"{prefix}{path}{Path.PathSeparator}{sitePackages}";
+            return $"{basePath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
         }
     }
 }

@@ -84,7 +84,7 @@ namespace Bonsai.Scripting.Python
                 if (pythonHome != path)
                 {
                     var version = PythonEngine.Version;
-                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(path);
+                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path);
                 }
                 PythonEngine.Initialize();
             }
