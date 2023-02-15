@@ -73,6 +73,7 @@ namespace Bonsai.Scripting.Python
                 if (string.IsNullOrEmpty(path))
                 {
                     path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+                    if (string.IsNullOrEmpty(path)) path = Environment.CurrentDirectory;
                 }
 
                 path = Path.GetFullPath(path);

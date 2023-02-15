@@ -46,8 +46,10 @@ namespace Bonsai.Scripting.Python
 
         public static string GetPythonPath(string path)
         {
+            var basePath = PythonEngine.PythonPath;
             var sitePackages = Path.Combine(path, "Lib", "site-packages");
-            return $"{PythonEngine.PythonPath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
+            var prefix = !string.IsNullOrEmpty(basePath) ? basePath.TrimEnd(Path.PathSeparator) + Path.PathSeparator : string.Empty;
+            return $"{prefix}{path}{Path.PathSeparator}{sitePackages}";
         }
     }
 }
