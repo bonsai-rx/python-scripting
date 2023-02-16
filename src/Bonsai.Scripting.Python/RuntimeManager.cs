@@ -47,8 +47,16 @@ namespace Bonsai.Scripting.Python
                 var module = new DynamicModule(name);
                 if (!string.IsNullOrEmpty(scriptPath))
                 {
-                    var code = File.ReadAllText(scriptPath);
-                    module.Exec(code);
+                    try
+                    {
+                        var code = File.ReadAllText(scriptPath);
+                        module.Exec(code);
+                    }
+                    catch (Exception)
+                    {
+                        module.Dispose();
+                        throw;
+                    }
                 }
                 return module;
             }
@@ -100,9 +108,12 @@ namespace Bonsai.Scripting.Python
             {
                 if (PythonEngine.IsInitialized)
                 {
-                    using (Py.GIL())
+                    if (MainModule != null)
                     {
-                        MainModule.Dispose();
+                        using (Py.GIL())
+                        {
+                            MainModule.Dispose();
+                        }
                     }
                     PythonEngine.EndAllowThreads(threadState);
                     PythonEngine.Shutdown();
