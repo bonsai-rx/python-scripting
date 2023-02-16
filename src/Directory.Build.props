@@ -6,6 +6,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageOutputPath>..\bin\$(Configuration)</PackageOutputPath>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://bonsai-rx.org/python-scripting</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/bonsai-rx/python-scripting/blob/main/LICENSE</PackageLicenseUrl>
     <PackageIconUrl>https://bonsai-rx.org/assets/images/bonsai.png</PackageIconUrl>
@@ -16,4 +17,8 @@
     <VersionSuffix></VersionSuffix>
     <Features>strict</Features>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="True" PackagePath="" />
+  </ItemGroup>
 </Project>
