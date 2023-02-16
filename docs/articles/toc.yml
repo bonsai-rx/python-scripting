@@ -3,3 +3,5 @@
   items:
     - name: Quickstart
       href: intro.md
+    - name: Dynamic Modules
+      href: modules.md
