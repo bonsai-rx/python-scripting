@@ -93,8 +93,9 @@ namespace Bonsai.Scripting.Python
 
                 var pythonVersion = EnvironmentHelper.GetPythonVersionFromVenv(path);
                 if (string.IsNullOrEmpty(pythonVersion)) pythonVersion = EnvironmentHelper.GetPythonVersionFromPythonDir(pythonHome);
+                Console.WriteLine($"Python Version: {pythonVersion}");
                 
-                var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome, path);
+                var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome, path, pythonVersion);
                 Console.WriteLine($"Python DLL: {pythonDLL}");
                 Runtime.PythonDLL = pythonDLL;
 
@@ -103,7 +104,7 @@ namespace Bonsai.Scripting.Python
                 if (pythonHome != path)
                 {
                     var version = PythonEngine.Version;
-                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path);
+                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path, pythonVersion);
                 }
                 PythonEngine.Initialize();
             }

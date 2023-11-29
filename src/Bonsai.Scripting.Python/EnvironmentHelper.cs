@@ -3,13 +3,17 @@ using System.IO;
 using System.Linq;
 using Python.Runtime;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace Bonsai.Scripting.Python
 {
     static class EnvironmentHelper
     {
-        public static string GetPythonDLL(string pythonHome, string path)
+        public static string GetPythonDLL(string pythonHome, string path, string pythonVersion)
         {
+            // string pythonVersion = GetPythonVersion(path);
+            // if string.IsNullOrEmpty(pythonVersion) pythonVersion = GetPythonVersionFrom(pythonHome);
+
             string searchPath = pythonHome;
             string searchPattern;
 
@@ -109,10 +113,10 @@ namespace Bonsai.Scripting.Python
             return highestVersion != "0.0" ? highestVersion : null;
         }
 
-        public static string GetPythonPath(string pythonHome, string path)
+        public static string GetPythonPath(string pythonHome, string path, string pythonVersion)
         {
             var basePath = PythonEngine.PythonPath;
-            var pythonVersion = GetPythonVersion(path);
+            // var pythonVersion = GetPythonVersion(path);
             var sitePackages = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Path.Combine(path, "Lib", "site-packages") :
                 string.Join(Path.PathSeparator.ToString(), Path.Combine(path, "lib", $"python{pythonVersion}", "site-packages"), 
                     Path.Combine(path, "lib64", $"python{pythonVersion}", "site-packages"));
