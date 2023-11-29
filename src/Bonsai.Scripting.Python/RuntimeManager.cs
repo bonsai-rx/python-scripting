@@ -24,6 +24,7 @@ namespace Bonsai.Scripting.Python
             Schedule(() =>
             {
                 Initialize(pythonHome);
+                Console.WriteLine("Initialized");
                 threadState = PythonEngine.BeginAllowThreads();
                 using (Py.GIL())
                 {
@@ -85,8 +86,18 @@ namespace Bonsai.Scripting.Python
                 }
 
                 path = Path.GetFullPath(path);
+                Console.WriteLine($"Path: {path}");
+
                 var pythonHome = EnvironmentHelper.GetPythonHome(path);
-                Runtime.PythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome);
+                Console.WriteLine($"Python Home: {pythonHome}");
+
+                var pythonVersion = EnvironmentHelper.GetPythonVersionFromVenv(path);
+                if (string.IsNullOrEmpty(pythonVersion)) pythonVersion = EnvironmentHelper.GetPythonVersionFromPythonDir(pythonHome);
+                
+                var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome, path);
+                Console.WriteLine($"Python DLL: {pythonDLL}");
+                Runtime.PythonDLL = pythonDLL;
+
                 EnvironmentHelper.SetRuntimePath(pythonHome);
                 PythonEngine.PythonHome = pythonHome;
                 if (pythonHome != path)
