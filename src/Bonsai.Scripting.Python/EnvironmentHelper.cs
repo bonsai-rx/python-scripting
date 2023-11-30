@@ -9,52 +9,51 @@ namespace Bonsai.Scripting.Python
 {
     static class EnvironmentHelper
     {
-        public static string GetPythonDLL(string pythonHome, string path, string pythonVersion)
+        public static string GetPythonDLL(string pythonVersion)
         {
-            // string pythonVersion = GetPythonVersion(path);
-            // if string.IsNullOrEmpty(pythonVersion) pythonVersion = GetPythonVersionFrom(pythonHome);
-
-            string searchPath = pythonHome;
-            string searchPattern;
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                if (string.IsNullOrEmpty(pythonVersion))
+                {
+                    pythonVersion = "3";
+                }
                 pythonVersion = pythonVersion.Replace(".", "");
-                searchPattern = $"python{pythonVersion}*";
+                return $"python{pythonVersion}";
             }
             else 
             {
-                searchPath = Path.Combine(searchPath, $"../lib/python{pythonVersion}");
-                searchPattern = $"libpython{pythonVersion}.so";
+                return $"libpython{pythonVersion}.so";
+
             }
-
-            Console.WriteLine($"Search path: {searchPath}");
-            Console.WriteLine($"Search pattern: {searchPattern}");
-
-            return Directory
-                .EnumerateFiles(searchPath, searchPattern, SearchOption.AllDirectories)
-                .Select(Path.GetFileNameWithoutExtension)
-                .Where(match => match.StartsWith($"python{pythonVersion}") || match.StartsWith($"libpython{pythonVersion}"))
-                .Select(match => match.Replace(".", string.Empty))
-                .FirstOrDefault();
-            // return Directory
-            //     .EnumerateFiles(pythonHome, searchPattern: "python3?*.*")
-            //     .Select(Path.GetFileNameWithoutExtension)
-            //     .Where(match => match.Length > "python3".Length)
-            //     .Select(match => match.Replace(".", string.Empty))
-            //     .FirstOrDefault();
         }
 
-        public static void SetRuntimePath(string pythonHome)
+        public static bool GetIncludeSystemSitePackages(string path)
         {
-            var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
-            path = string.IsNullOrEmpty(path) ? pythonHome : pythonHome + Path.PathSeparator + path;
-            Environment.SetEnvironmentVariable("PATH", path, EnvironmentVariableTarget.Process);
+            bool includeGlobalPackages = true;
+
+            var configFileName = !string.IsNullOrEmpty(path) ? Path.Combine(path, "pyvenv.cfg") : null;
+            if (File.Exists(configFileName))
+            {
+                using var configReader = new StreamReader(File.OpenRead(configFileName));
+                while (!configReader.EndOfStream)
+                {
+                    var line = configReader.ReadLine();
+                    if (line.StartsWith("include-system-site-packages"))
+                    {
+                        includeGlobalPackages = bool.Parse(line.Split('=')[1].Trim()) ;
+                        break;
+                    }
+                }
+            }
+
+            return includeGlobalPackages;
         }
 
         public static string GetPythonHome(string path)
         {
-            var configFileName = Path.Combine(path, "pyvenv.cfg");
+            string pythonHome = null;
+
+            var configFileName = !string.IsNullOrEmpty(path) ? Path.Combine(path, "pyvenv.cfg") : null;
             if (File.Exists(configFileName))
             {
                 using var configReader = new StreamReader(File.OpenRead(configFileName));
@@ -64,16 +63,35 @@ namespace Bonsai.Scripting.Python
                     if (line.StartsWith("home"))
                     {
                         var parts = line.Split('=');
-                        return parts[parts.Length - 1].Trim();
+                        pythonHome = parts[parts.Length - 1].Trim();
+                        break;
                     }
                 }
             }
-            return path;
+            else
+            {
+                string pythonExecutableName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "python.exe" : "python3";
+
+                var systemPath = Environment.GetEnvironmentVariable("PATH");
+                var paths = systemPath.Split(Path.PathSeparator);
+
+                var pythonExecutableHome = paths.Select(p => Path.Combine(p, pythonExecutableName))
+                                    .FirstOrDefault(File.Exists);
+
+                if (pythonExecutableHome != null)
+                {
+                    pythonHome = Path.GetDirectoryName(pythonExecutableHome);
+                }
+
+            }
+            return pythonHome;
         }
 
-        public static string GetPythonVersionFromVenv(string path)
+        public static string GetPythonVersion(string path, string pythonHome)
         {
-            var configFileName = Path.Combine(path, "pyvenv.cfg");
+            string version = "0.0";
+
+            var configFileName = !string.IsNullOrEmpty(path) ? Path.Combine(path, "pyvenv.cfg") : null;
             if (File.Exists(configFileName))
             {
                 using var configReader = new StreamReader(File.OpenRead(configFileName));
@@ -83,71 +101,92 @@ namespace Bonsai.Scripting.Python
                     if (line.StartsWith("version"))
                     {
                         var parts = line.Split('=')[1].Trim().Split('.');
-                        return $"{parts[0]}.{parts[1]}";
+                        version = $"{parts[0]}.{parts[1]}";
+                        break;
                     }
                 }
             }
-            return "";
-        }
-
-        public static string GetPythonVersionFromPythonDir(string pythonHome)
-        {
-            var pythonExecutableRegex = new Regex(@"python3(\d+)?(\.\d+)?", RegexOptions.IgnoreCase);
-            var highestVersion = "0.0";
-            
-            var filesAndDirs = Directory.EnumerateFileSystemEntries(pythonHome);
-            foreach (var entry in filesAndDirs)
+            else
             {
-                var name = Path.GetFileName(entry);
-                var match = pythonExecutableRegex.Match(name);
-                if (match.Success)
-                {
-                    var version = match.Value.Replace("python", "").Replace("Python", "");
-                    if (String.Compare(version, highestVersion) > 0)
-                    {
-                        highestVersion = version;
-                    }
-                }
-            }
+                var pythonExecutableRegex = new Regex(@"python3(\d+)?(\.\d+)?", RegexOptions.IgnoreCase);
 
-            return highestVersion != "0.0" ? highestVersion : null;
+                var filesAndDirs = Directory.EnumerateFileSystemEntries(pythonHome);
+                foreach (var entry in filesAndDirs)
+                {
+                    var name = Path.GetFileName(entry);
+                    var match = pythonExecutableRegex.Match(name);
+                    if (match.Success)
+                    {
+                        var matchedVersion = match.Value.Replace("python", "").Replace("Python", "");
+                        if (String.Compare(matchedVersion, version) > 0)
+                        {
+                            version = matchedVersion;
+                        }
+                    }
+                }                
+            }
+            return version != "0.0" ? version : null;
         }
 
         public static string GetPythonPath(string pythonHome, string path, string pythonVersion)
         {
-            var basePath = PythonEngine.PythonPath;
-            // var pythonVersion = GetPythonVersion(path);
-            var sitePackages = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Path.Combine(path, "Lib", "site-packages") :
-                string.Join(Path.PathSeparator.ToString(), Path.Combine(path, "lib", $"python{pythonVersion}", "site-packages"), 
-                    Path.Combine(path, "lib64", $"python{pythonVersion}", "site-packages"));
-            if (string.IsNullOrEmpty(PythonEngine.PythonPath))
+            string sitePackages = null;
+            string basePath = null;
+
+            if (!string.IsNullOrEmpty(path))
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
-                    var pythonDLLs = Path.Combine(pythonHome, "DLLs");
-                    var pythonLib = Path.Combine(pythonHome, "Lib");
-                    var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                    basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
+                    sitePackages = Path.Combine(path, "Lib", "site-packages");
                 }
                 else
                 {
-                    var pythonLib = Path.Combine(pythonHome, $"../lib/python{pythonVersion}");
-                    var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                    basePath = string.Join(Path.PathSeparator.ToString(), pythonLib, baseDirectory);
+                    sitePackages = string.Join(Path.PathSeparator.ToString(), Path.Combine(path, "lib", $"python{pythonVersion}", "site-packages"), 
+                        Path.Combine(path, "lib64", $"python{pythonVersion}", "site-packages"));
                 }
             }
 
-            // var sitePackages = Path.Combine(path, "Lib", "site-packages");
-            // var newPath = $"{basePath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
+            string[] basePaths = null;
 
-            var newPath = string.Join(
-                Path.PathSeparator.ToString(), 
-                path,
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
+                var pythonDLLs = Path.Combine(pythonHome, "DLLs");
+                var pythonLib = Path.Combine(pythonHome, "Lib");
+                bool includeSystemSitePackages = GetIncludeSystemSitePackages(path);
+                var pythonPackages = includeSystemSitePackages ? Path.Combine(pythonLib, "site-packages") : null;
+                // var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+                basePaths = new string[] { 
+                    pythonDLLs, 
+                    pythonLib,
+                    pythonPackages
+                };
+            }
+            else
+            {
+                var pythonMajorVersion = pythonVersion.Split('.')[0];
+                var pythonLib = Path.Combine(Path.GetDirectoryName(pythonHome), "lib", $"python{pythonVersion}");
+                bool includeSystemSitePackages = GetIncludeSystemSitePackages(path);
+                var pythonPackages = includeSystemSitePackages ? Path.Combine(Path.GetDirectoryName(pythonHome), "lib", $"python{pythonMajorVersion}", "dist-packages") : null;
+                // var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+                basePaths = new string[] {
+                    pythonLib,
+                    pythonPackages
+                };
+            }
+            
+            basePath = string.Join(Path.PathSeparator.ToString(), basePaths.Where(p => p != null));
+
+            string[] paths = {
                 basePath,
                 sitePackages
-            );
-            return newPath;
+            };
+
+            var pythonPath = string.Join(Path.PathSeparator.ToString(), paths.Where(p => p != null));
+
+            return pythonPath;
         }
     }
 }
