@@ -103,13 +103,13 @@ namespace Bonsai.Scripting.Python
                 Console.WriteLine($"Python DLL: {pythonDLL}");
                 Runtime.PythonDLL = pythonDLL;
 
-                // var systemPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
-                // if (!systemPath.Split(Path.PathSeparator).Contains(pythonHome, StringComparer.OrdinalIgnoreCase))
-                // {
-                //     systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + path;
-                // }
-                // Console.WriteLine($"System Path: {systemPath}");
-                // Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
+                var systemPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
+                if (!systemPath.Split(Path.PathSeparator).Contains(pythonHome, StringComparer.OrdinalIgnoreCase))
+                {
+                    systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + path;
+                }
+                Console.WriteLine($"System Path: {systemPath}");
+                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
 
                 PythonEngine.PythonHome = pythonHome;
 
