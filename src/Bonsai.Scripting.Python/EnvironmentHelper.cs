@@ -188,5 +188,15 @@ namespace Bonsai.Scripting.Python
 
             return pythonPath;
         }
+
+        public static void SetEnvironmentPath(string pythonHome)
+        {
+                var systemPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
+                if (!systemPath.Split(Path.PathSeparator).Contains(pythonHome, StringComparer.OrdinalIgnoreCase))
+                {
+                    systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + systemPath;
+                }
+                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
+        }
     }
 }
