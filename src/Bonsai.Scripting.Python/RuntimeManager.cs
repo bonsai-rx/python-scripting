@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.IO;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Python.Runtime;
+using SystemPath = System.IO.Path;
 
 namespace Bonsai.Scripting.Python
 {
@@ -14,6 +17,7 @@ namespace Bonsai.Scripting.Python
     /// </summary>
     public class RuntimeManager : IDisposable
     {
+        const char AssemblySeparator = ':';
         readonly EventLoopScheduler runtimeScheduler;
         readonly IObserver<RuntimeManager> runtimeObserver;
         IntPtr threadState;
@@ -34,6 +38,36 @@ namespace Bonsai.Scripting.Python
             });
         }
 
+        internal static bool IsEmbeddedResourcePath(string path)
+        {
+            var separatorIndex = path.IndexOf(AssemblySeparator);
+            return separatorIndex >= 0 && !SystemPath.IsPathRooted(path);
+        }
+
+        internal static string GetEmbeddedPythonCode(string path)
+        {
+            var nameElements = path.Split(new[] { AssemblySeparator }, 2);
+            if (string.IsNullOrEmpty(nameElements[0]))
+            {
+                throw new InvalidOperationException(
+                    "The embedded resource path \"" + path +
+                    "\" must be qualified with a valid assembly name.");
+            }
+
+            var assembly = Assembly.Load(nameElements[0]);
+            var resourceName = string.Join(ExpressionHelper.MemberSeparator, nameElements);
+            using var resourceStream = assembly.GetManifestResourceStream(resourceName);
+            if (resourceStream == null)
+            {
+                throw new InvalidOperationException(
+                    "The specified embedded resource \"" + nameElements[1] +
+                    "\" was not found in assembly \"" + nameElements[0] + "\"");
+            }
+            using var reader = new StreamReader(resourceStream);
+            var code = reader.ReadToEnd();
+            return code;
+        }
+
         internal PyModule MainModule { get; private set; }
 
         internal static IObservable<RuntimeManager> RuntimeSource { get; } = Observable.Using(
@@ -50,7 +84,7 @@ namespace Bonsai.Scripting.Python
                 {
                     try
                     {
-                        var code = File.ReadAllText(scriptPath);
+                        var code = IsEmbeddedResourcePath(scriptPath) ? GetEmbeddedPythonCode(scriptPath) : File.ReadAllText(scriptPath);
                         module.Exec(code);
                     }
                     catch (Exception)
@@ -79,35 +113,62 @@ namespace Bonsai.Scripting.Python
         {
             if (!PythonEngine.IsInitialized)
             {
+                string venvPath = null;
                 if (string.IsNullOrEmpty(path))
                 {
-                    path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+                    venvPath = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+                    path = venvPath;
                 }
 
-                if (!string.IsNullOrEmpty(path))
-                {
-                    path = Path.GetFullPath(path);
-                }
+                // Console.WriteLine($"Path: {path}");
 
                 var pythonHome = EnvironmentHelper.GetPythonHome(path);
+                // Console.WriteLine($"Python home: {pythonHome}");
+
                 var pythonVersion = EnvironmentHelper.GetPythonVersion(path, pythonHome);
-                var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonVersion);
+                // Console.WriteLine($"Python version: {pythonVersion}");
+
+                var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome, pythonVersion);
+                // Console.WriteLine($"Python dll: {pythonDLL}");
+
+                // Set the python DLL
                 Runtime.PythonDLL = pythonDLL;
-                // EnvironmentHelper.SetEnvironmentPath(pythonHome);
-                var systemPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
-                if (!systemPath.Split(Path.PathSeparator).Contains(pythonHome, StringComparer.OrdinalIgnoreCase))
+                
+                // Only set environment/python.net variables if a virtual environment is used, otherwise use default python configuration
+                if (!string.IsNullOrEmpty(path))
                 {
-                    systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + systemPath;
-                }
-                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
-                PythonEngine.PythonHome = pythonHome;
-                if (pythonHome != path)
-                {
-                    var pythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path, pythonVersion);
-                    PythonEngine.PythonPath = pythonPath;
+                    var pathToVirtualEnv = Path.GetFullPath(path);
+                    // Console.WriteLine($"Venv path: {pathToVirtualEnv}");
+
+                    if (string.IsNullOrEmpty(venvPath))
+                    {
+                        Environment.SetEnvironmentVariable("VIRTUAL_ENV", pathToVirtualEnv);
+                        var virtualEnvPrompt = $"({Path.GetFileName(pathToVirtualEnv)})";
+                        Environment.SetEnvironmentVariable("VIRTUAL_ENV_PROMPT", virtualEnvPrompt);
+                        var ps1 = Environment.GetEnvironmentVariable("PS1");
+                        ps1 = string.IsNullOrEmpty(ps1) ? virtualEnvPrompt : virtualEnvPrompt + " " + ps1;
+                        Environment.SetEnvironmentVariable("PS1", ps1);
+                    }
+
+                    string systemPath = Environment.GetEnvironmentVariable("PATH")!.TrimEnd(Path.PathSeparator);
+                    systemPath = string.IsNullOrEmpty(systemPath) ? $"{pathToVirtualEnv}/bin" : $"{pathToVirtualEnv}/bin" + Path.PathSeparator + systemPath;
+                    Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
+                    Environment.SetEnvironmentVariable("PYTHONHOME", pathToVirtualEnv, EnvironmentVariableTarget.Process);
+                    var pythonBase = Path.GetDirectoryName(pythonHome);
+                    Environment.SetEnvironmentVariable("PYTHONPATH", string.Join(Path.PathSeparator.ToString(),
+                        pathToVirtualEnv,
+                        $"{pythonBase}/lib/python{pythonVersion}.zip",
+                        $"{pythonBase}/lib/python{pythonVersion}",
+                        $"{pythonBase}/lib/python{pythonVersion}/lib-dynload",
+                        $"{pathToVirtualEnv}/lib/python{pythonVersion}/site-packages"), EnvironmentVariableTarget.Process);
+
+                    PythonEngine.PythonPath = PythonEngine.PythonPath + Path.PathSeparator +
+                                            Environment.GetEnvironmentVariable("PYTHONPATH", EnvironmentVariableTarget.Process);
+                    PythonEngine.PythonHome = pathToVirtualEnv;
                 }
 
                 PythonEngine.Initialize();
+
             }
         }
 

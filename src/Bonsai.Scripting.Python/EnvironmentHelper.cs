@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Python.Runtime;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -9,22 +9,64 @@ namespace Bonsai.Scripting.Python
 {
     static class EnvironmentHelper
     {
-        public static string GetPythonDLL(string pythonVersion)
+
+        private static string GetFirstFile(string path, string pattern, HashSet<string> visitedDirectories = null)
         {
+            visitedDirectories ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                var dirInfo = new DirectoryInfo(path);
+
+                // Check if the current directory is a symbolic link
+                if ((dirInfo.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint)
+                {
+                    return null;
+                }
+
+                // Avoid revisiting the same directory
+                if (!visitedDirectories.Add(path))
+                {
+                    return null;
+                }
+
+                var files = Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly);
+                if (files.Length > 0)
+                {
+                    return files[0]; // Return the full path of the first found file
+                }
+
+                foreach (var directory in Directory.GetDirectories(path))
+                {
+                    var file = GetFirstFile(directory, pattern, visitedDirectories);
+                    if (!string.IsNullOrEmpty(file))
+                    {
+                        return file; // Return the full path of the first found file in subdirectories
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException) { }
+            catch (IOException) { } // Handle exceptions related to symbolic links and access issues
+
+            return null; // Return null if no file is found
+        }
+        
+        public static string GetPythonDLL(string pythonHome, string pythonVersion)
+        {
+            string searchPath = pythonHome;
+            string searchPattern;
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (string.IsNullOrEmpty(pythonVersion))
-                {
-                    pythonVersion = "3";
-                }
                 pythonVersion = pythonVersion.Replace(".", "");
-                return $"python{pythonVersion}";
+                searchPattern = $"python{pythonVersion}.dll";
             }
             else 
             {
-                return $"libpython{pythonVersion}.so";
-
+                searchPath = Path.GetDirectoryName(searchPath);
+                searchPattern = $"libpython{pythonVersion}.so";
             }
+            return GetFirstFile(searchPath, searchPattern);
         }
 
         public static bool GetIncludeSystemSitePackages(string path)
@@ -126,77 +168,6 @@ namespace Bonsai.Scripting.Python
                 }                
             }
             return version != "0.0" ? version : null;
-        }
-
-        public static string GetPythonPath(string pythonHome, string path, string pythonVersion)
-        {
-            string sitePackages = null;
-            string basePath = null;
-
-            if (!string.IsNullOrEmpty(path))
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    sitePackages = Path.Combine(path, "Lib", "site-packages");
-                }
-                else
-                {
-                    sitePackages = string.Join(Path.PathSeparator.ToString(), Path.Combine(path, "lib", $"python{pythonVersion}", "site-packages"), 
-                        Path.Combine(path, "lib64", $"python{pythonVersion}", "site-packages"));
-                }
-            }
-
-            string[] basePaths = null;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
-                var pythonDLLs = Path.Combine(pythonHome, "DLLs");
-                var pythonLib = Path.Combine(pythonHome, "Lib");
-                bool includeSystemSitePackages = GetIncludeSystemSitePackages(path);
-                var pythonPackages = includeSystemSitePackages ? Path.Combine(pythonLib, "site-packages") : null;
-                // var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-                basePaths = new string[] { 
-                    pythonDLLs, 
-                    pythonLib,
-                    pythonPackages
-                };
-            }
-            else
-            {
-                var pythonMajorVersion = pythonVersion.Split('.')[0];
-                var pythonLib = Path.Combine(Path.GetDirectoryName(pythonHome), "lib", $"python{pythonVersion}");
-                bool includeSystemSitePackages = GetIncludeSystemSitePackages(path);
-                var pythonPackages = includeSystemSitePackages ? Path.Combine(Path.GetDirectoryName(pythonHome), "lib", $"python{pythonMajorVersion}", "dist-packages") : null;
-                // var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-                basePaths = new string[] {
-                    pythonLib,
-                    pythonPackages
-                };
-            }
-            
-            basePath = string.Join(Path.PathSeparator.ToString(), basePaths.Where(p => p != null));
-
-            string[] paths = {
-                basePath,
-                sitePackages
-            };
-
-            var pythonPath = string.Join(Path.PathSeparator.ToString(), paths.Where(p => p != null));
-
-            return pythonPath;
-        }
-
-        public static void SetEnvironmentPath(string pythonHome)
-        {
-                var systemPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
-                if (!systemPath.Split(Path.PathSeparator).Contains(pythonHome, StringComparer.OrdinalIgnoreCase))
-                {
-                    systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + systemPath;
-                }
-                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
         }
     }
 }
