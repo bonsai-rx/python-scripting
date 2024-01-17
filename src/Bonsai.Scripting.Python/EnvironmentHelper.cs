@@ -169,5 +169,77 @@ namespace Bonsai.Scripting.Python
             }
             return version != "0.0" ? version : null;
         }
+        public static void SetRuntimePath(string pythonHome, string path, string pythonVersion)
+        {
+            string systemPath = Environment.GetEnvironmentVariable("PATH")!.TrimEnd(Path.PathSeparator);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + systemPath;
+                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
+                // Environment.SetEnvironmentVariable("PYTHONPATH", string.Join(Path.PathSeparator.ToString(),
+                //     path,
+                //     Path.Combine(pythonHome, $"python{pythonVersion}.zip"),
+                //     Path.Combine(pythonHome, "DLLs"),
+                //     Path.Combine(pythonHome, "Lib"),
+                //     Path.Combine(pythonHome, "Lib", "site-packages")), EnvironmentVariableTarget.Process);   
+            }
+            else
+            {
+                systemPath = string.IsNullOrEmpty(systemPath) ? Path.Combine(path, "bin") : Path.Combine(path, "bin") + Path.PathSeparator + systemPath;
+                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
+                Environment.SetEnvironmentVariable("PYTHONHOME", path, EnvironmentVariableTarget.Process);
+                var pythonBase = Path.GetDirectoryName(pythonHome);
+                Environment.SetEnvironmentVariable("PYTHONPATH", string.Join(Path.PathSeparator.ToString(),
+                    path,
+                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}.zip"),
+                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}"),
+                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}", "lib-dynload"),
+                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}", "site-packages")), EnvironmentVariableTarget.Process);   
+            }
+        }
+
+        public static string GetVirtualEnvironmentPath(string path)
+        {
+            if (!string.IsNullOrEmpty(path)) 
+            {
+                Environment.SetEnvironmentVariable("VIRTUAL_ENV", path);
+                return path;
+            }
+            var venvPath = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+            if (string.IsNullOrEmpty(venvPath)) return path;
+            var fullVenvPath = Path.GetFullPath(venvPath);
+            return fullVenvPath;
+        }
+
+        public static void SetVirtualEnvironmentPath(string path)
+        {
+            if (!string.IsNullOrEmpty(path)) 
+            {
+                return;
+            }
+            Environment.SetEnvironmentVariable("VIRTUAL_ENV", path);
+        }
+        
+        public static string GetPythonPath(string pythonHome, string path, string basePath, string pythonDLL)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (string.IsNullOrEmpty(basePath))
+                {
+                    var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(pythonDLL, ".zip"));
+                    var pythonDLLs = Path.Combine(pythonHome, "DLLs");
+                    var pythonLib = Path.Combine(pythonHome, "Lib");
+                    var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
+                }
+
+                var sitePackages = Path.Combine(path, "Lib", "site-packages");
+                return $"{basePath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
+            } 
+            else
+            {
+                return basePath + Path.PathSeparator + Environment.GetEnvironmentVariable("PYTHONPATH", EnvironmentVariableTarget.Process);
+            }
+        }
     }
 }
