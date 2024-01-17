@@ -175,13 +175,7 @@ namespace Bonsai.Scripting.Python
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + systemPath;
-                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
-                // Environment.SetEnvironmentVariable("PYTHONPATH", string.Join(Path.PathSeparator.ToString(),
-                //     path,
-                //     Path.Combine(pythonHome, $"python{pythonVersion}.zip"),
-                //     Path.Combine(pythonHome, "DLLs"),
-                //     Path.Combine(pythonHome, "Lib"),
-                //     Path.Combine(pythonHome, "Lib", "site-packages")), EnvironmentVariableTarget.Process);   
+                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process); 
             }
             else
             {

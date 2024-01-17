@@ -113,68 +113,28 @@ namespace Bonsai.Scripting.Python
         {
             if (!PythonEngine.IsInitialized)
             {
-                // string venvPath = null;
-                // if (string.IsNullOrEmpty(path))
-                // {
-                //     venvPath = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
-                //     path = venvPath;
-                // }
                 path = EnvironmentHelper.GetVirtualEnvironmentPath(path);
                 EnvironmentHelper.SetVirtualEnvironmentPath(path);
 
-                Console.WriteLine($"Path: {path}");
-
                 var pythonHome = EnvironmentHelper.GetPythonHome(path);
-                Console.WriteLine($"Python home: {pythonHome}");
-
                 var pythonVersion = EnvironmentHelper.GetPythonVersion(path, pythonHome);
-                Console.WriteLine($"Python version: {pythonVersion}");
-
                 var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome, pythonVersion);
-                Console.WriteLine($"Python dll: {pythonDLL}");
 
-                // Set the python DLL
                 Runtime.PythonDLL = pythonDLL;
                 
                 // Only set environment/python.net variables if a virtual environment is used, otherwise use default python configuration
                 if (!string.IsNullOrEmpty(path))
                 {
-                    // var pathToVirtualEnv = Path.GetFullPath(path);
-                    // Console.WriteLine($"Venv path: {pathToVirtualEnv}");
 
-                    // if (string.IsNullOrEmpty(venvPath))
-                    // {
-                    //     Environment.SetEnvironmentVariable("VIRTUAL_ENV", pathToVirtualEnv);
-                    //     // var virtualEnvPrompt = $"({Path.GetFileName(pathToVirtualEnv)})";
-                    //     // Environment.SetEnvironmentVariable("VIRTUAL_ENV_PROMPT", virtualEnvPrompt);
-                    //     // var ps1 = Environment.GetEnvironmentVariable("PS1");
-                    //     // ps1 = string.IsNullOrEmpty(ps1) ? virtualEnvPrompt : virtualEnvPrompt + " " + ps1;
-                    //     // Environment.SetEnvironmentVariable("PS1", ps1);
-                    // }
                     EnvironmentHelper.SetRuntimePath(pythonHome, path, pythonVersion);
                     PythonEngine.PythonHome = pythonHome;
-                    // string systemPath = Environment.GetEnvironmentVariable("PATH")!.TrimEnd(Path.PathSeparator);
-                    // systemPath = string.IsNullOrEmpty(systemPath) ? $"{pathToVirtualEnv}/bin" : $"{pathToVirtualEnv}/bin" + Path.PathSeparator + systemPath;
-                    // Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
-                    // Environment.SetEnvironmentVariable("PYTHONHOME", pathToVirtualEnv, EnvironmentVariableTarget.Process);
-                    // var pythonBase = Path.GetDirectoryName(pythonHome);
-                    // Environment.SetEnvironmentVariable("PYTHONPATH", string.Join(Path.PathSeparator.ToString(),
-                    //     pathToVirtualEnv,
-                    //     $"{pythonBase}/lib/python{pythonVersion}.zip",
-                    //     $"{pythonBase}/lib/python{pythonVersion}",
-                    //     $"{pythonBase}/lib/python{pythonVersion}/lib-dynload",
-                    //     $"{pathToVirtualEnv}/lib/python{pythonVersion}/site-packages"), EnvironmentVariableTarget.Process);
 
                     if (pythonHome != path)
                     {
                         var basePath = PythonEngine.PythonPath;
                         var pythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path, basePath, pythonDLL);
-                        // PythonEngine.PythonPath = PythonEngine.PythonPath + Path.PathSeparator +
-                        //     Environment.GetEnvironmentVariable("PYTHONPATH", EnvironmentVariableTarget.Process);
                         PythonEngine.PythonPath = pythonPath;
                     }
-                    // PythonEngine.PythonHome = path;
-                    // PythonEngine.PythonHome = pythonHome;
                 }
 
                 PythonEngine.Initialize();
