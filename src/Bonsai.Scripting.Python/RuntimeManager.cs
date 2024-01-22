@@ -78,22 +78,30 @@ namespace Bonsai.Scripting.Python
         {
             if (!PythonEngine.IsInitialized)
             {
-                if (string.IsNullOrEmpty(path))
+                path = EnvironmentHelper.GetVirtualEnvironmentPath(path);
+                EnvironmentHelper.SetVirtualEnvironmentPath(path);
+
+                var pythonHome = EnvironmentHelper.GetPythonHome(path);
+                var pythonVersion = EnvironmentHelper.GetPythonVersion(path, pythonHome);
+                var pythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome, pythonVersion);
+                
+                Runtime.PythonDLL = pythonDLL;
+
+                // Only set environment/python.net variables if a virtual environment is used, otherwise use default python configuration
+                if (!string.IsNullOrEmpty(path))
                 {
-                    path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
-                    if (string.IsNullOrEmpty(path)) path = Environment.CurrentDirectory;
+
+                    EnvironmentHelper.SetRuntimePath(pythonHome, path, pythonVersion);
+                    PythonEngine.PythonHome = pythonHome;
+
+                    if (pythonHome != path)
+                    {
+                        var basePath = PythonEngine.PythonPath;
+                        var pythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path, basePath, pythonDLL);
+                        PythonEngine.PythonPath = pythonPath;
+                    }
                 }
 
-                path = Path.GetFullPath(path);
-                var pythonHome = EnvironmentHelper.GetPythonHome(path);
-                Runtime.PythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome);
-                EnvironmentHelper.SetRuntimePath(pythonHome);
-                PythonEngine.PythonHome = pythonHome;
-                if (pythonHome != path)
-                {
-                    var version = PythonEngine.Version;
-                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path);
-                }
                 PythonEngine.Initialize();
             }
         }
