@@ -5,7 +5,8 @@
     <Description>Bonsai Scripting Library for interfacing with the Python runtime.</Description>
     <PackageTags>Bonsai Rx Scripting Python Python.NET</PackageTags>
     <TargetFramework>net472</TargetFramework>
-    <VersionPrefix>0.1.1</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
