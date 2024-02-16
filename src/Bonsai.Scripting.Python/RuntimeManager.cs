@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Python.Runtime;
+using SystemPath = System.IO.Path;
 
 namespace Bonsai.Scripting.Python
 {
@@ -13,6 +15,7 @@ namespace Bonsai.Scripting.Python
     /// </summary>
     public class RuntimeManager : IDisposable
     {
+        const char AssemblySeparator = ':';
         readonly EventLoopScheduler runtimeScheduler;
         readonly IObserver<RuntimeManager> runtimeObserver;
         IntPtr threadState;
@@ -40,6 +43,40 @@ namespace Bonsai.Scripting.Python
             disposable => disposable.Subject)
             .Take(1);
 
+        static bool IsEmbeddedResourcePath(string path)
+        {
+            var separatorIndex = path.IndexOf(AssemblySeparator);
+            return separatorIndex >= 0 && !SystemPath.IsPathRooted(path);
+        }
+
+        static string ReadAllText(string path)
+        {
+            if (IsEmbeddedResourcePath(path))
+            {
+                var nameElements = path.Split(new[] { AssemblySeparator }, 2);
+                if (string.IsNullOrEmpty(nameElements[0]))
+                {
+                    throw new InvalidOperationException(
+                        "The embedded resource path \"" + path +
+                        "\" must be qualified with a valid assembly name.");
+                }
+
+                var assembly = Assembly.Load(nameElements[0]);
+                var resourceName = string.Join(ExpressionHelper.MemberSeparator, nameElements);
+                using var resourceStream = assembly.GetManifestResourceStream(resourceName);
+                if (resourceStream == null)
+                {
+                    throw new InvalidOperationException(
+                        "The specified embedded resource \"" + nameElements[1] +
+                        "\" was not found in assembly \"" + nameElements[0] + "\"");
+                }
+                
+                using var reader = new StreamReader(resourceStream);
+                return reader.ReadToEnd();
+            }
+            else return File.ReadAllText(path);
+        }
+
         internal static DynamicModule CreateModule(string name = "", string scriptPath = "")
         {
             using (Py.GIL())
@@ -49,7 +86,7 @@ namespace Bonsai.Scripting.Python
                 {
                     try
                     {
-                        var code = File.ReadAllText(scriptPath);
+                        var code = ReadAllText(scriptPath);
                         module.Exec(code);
                     }
                     catch (Exception)
