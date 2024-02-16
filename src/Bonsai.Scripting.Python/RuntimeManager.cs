@@ -43,34 +43,38 @@ namespace Bonsai.Scripting.Python
             disposable => disposable.Subject)
             .Take(1);
 
-        internal static bool IsEmbeddedResourcePath(string path)
+        static bool IsEmbeddedResourcePath(string path)
         {
             var separatorIndex = path.IndexOf(AssemblySeparator);
             return separatorIndex >= 0 && !SystemPath.IsPathRooted(path);
         }
 
-        internal static string GetEmbeddedPythonCode(string path)
+        static string ReadAllText(string path)
         {
-            var nameElements = path.Split(new[] { AssemblySeparator }, 2);
-            if (string.IsNullOrEmpty(nameElements[0]))
+            if (IsEmbeddedResourcePath(path))
             {
-                throw new InvalidOperationException(
-                    "The embedded resource path \"" + path +
-                    "\" must be qualified with a valid assembly name.");
-            }
+                var nameElements = path.Split(new[] { AssemblySeparator }, 2);
+                if (string.IsNullOrEmpty(nameElements[0]))
+                {
+                    throw new InvalidOperationException(
+                        "The embedded resource path \"" + path +
+                        "\" must be qualified with a valid assembly name.");
+                }
 
-            var assembly = Assembly.Load(nameElements[0]);
-            var resourceName = string.Join(ExpressionHelper.MemberSeparator, nameElements);
-            using var resourceStream = assembly.GetManifestResourceStream(resourceName);
-            if (resourceStream == null)
-            {
-                throw new InvalidOperationException(
-                    "The specified embedded resource \"" + nameElements[1] +
-                    "\" was not found in assembly \"" + nameElements[0] + "\"");
+                var assembly = Assembly.Load(nameElements[0]);
+                var resourceName = string.Join(ExpressionHelper.MemberSeparator, nameElements);
+                using var resourceStream = assembly.GetManifestResourceStream(resourceName);
+                if (resourceStream == null)
+                {
+                    throw new InvalidOperationException(
+                        "The specified embedded resource \"" + nameElements[1] +
+                        "\" was not found in assembly \"" + nameElements[0] + "\"");
+                }
+                
+                using var reader = new StreamReader(resourceStream);
+                return reader.ReadToEnd();
             }
-            using var reader = new StreamReader(resourceStream);
-            var code = reader.ReadToEnd();
-            return code;
+            else return File.ReadAllText(path);
         }
 
         internal static DynamicModule CreateModule(string name = "", string scriptPath = "")
@@ -82,7 +86,7 @@ namespace Bonsai.Scripting.Python
                 {
                     try
                     {
-                        var code = IsEmbeddedResourcePath(scriptPath) ? GetEmbeddedPythonCode(scriptPath) : File.ReadAllText(scriptPath);
+                        var code = ReadAllText(scriptPath);
                         module.Exec(code);
                     }
                     catch (Exception)
