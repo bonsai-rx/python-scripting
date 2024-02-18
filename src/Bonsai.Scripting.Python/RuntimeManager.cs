@@ -115,21 +115,15 @@ namespace Bonsai.Scripting.Python
         {
             if (!PythonEngine.IsInitialized)
             {
-                if (string.IsNullOrEmpty(path))
-                {
-                    path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
-                    if (string.IsNullOrEmpty(path)) path = Environment.CurrentDirectory;
-                }
-
-                path = Path.GetFullPath(path);
-                var pythonHome = EnvironmentHelper.GetPythonHome(path);
-                Runtime.PythonDLL = EnvironmentHelper.GetPythonDLL(pythonHome);
+                path = EnvironmentHelper.GetVirtualEnvironmentPath(path);
+                var pythonHome = EnvironmentHelper.GetPythonHome(path, out string pythonVersion);
+                Runtime.PythonDLL = EnvironmentHelper.GetPythonDLL(pythonVersion);
                 EnvironmentHelper.SetRuntimePath(pythonHome);
                 PythonEngine.PythonHome = pythonHome;
                 if (pythonHome != path)
                 {
                     var version = PythonEngine.Version;
-                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(pythonHome, path);
+                    PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(pythonHome, pythonVersion, path);
                 }
                 PythonEngine.Initialize();
             }
