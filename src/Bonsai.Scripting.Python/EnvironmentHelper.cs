@@ -24,12 +24,34 @@ namespace Bonsai.Scripting.Python
             }
         }
 
+        static string FindPythonHome()
+        {
+            var systemPath = Environment.GetEnvironmentVariable("PATH");
+            var searchPaths = systemPath.Split(Path.PathSeparator);
+            var isRunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var pythonExecutableName = isRunningOnWindows ? "python.exe" : "python3";
+
+            var pythonHome = Array.Find(searchPaths, path => File.Exists(Path.Combine(path, pythonExecutableName)));
+            if (pythonHome != null && !isRunningOnWindows && MonoHelper.IsRunningOnMono)
+            {
+                var pythonExecutablePath = Path.Combine(pythonHome, pythonExecutableName);
+                pythonExecutablePath = MonoHelper.GetRealPath(pythonExecutablePath);
+                var baseDirectory = Directory.GetParent(pythonExecutablePath).Parent;
+                if (baseDirectory != null)
+                {
+                    pythonHome = Path.Combine(baseDirectory.FullName, "lib", Path.GetFileName(pythonExecutablePath));
+                }
+            }
+
+            return pythonHome;
+        }
+
         public static string GetEnvironmentPath(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
                 path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
-                if (path == null) return path;
+                if (path == null) return FindPythonHome();
             }
 
             return Path.GetFullPath(path);
