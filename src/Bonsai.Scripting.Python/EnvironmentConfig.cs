@@ -13,6 +13,7 @@ namespace Bonsai.Scripting.Python
             Path = pythonHome;
             PythonHome = pythonHome;
             PythonVersion = pythonVersion;
+            IncludeSystemSitePackages = true;
         }
 
         public string Path { get; private set; }
@@ -20,6 +21,8 @@ namespace Bonsai.Scripting.Python
         public string PythonHome { get; private set; }
 
         public string PythonVersion { get; private set; }
+
+        public bool IncludeSystemSitePackages { get; private set; }
 
         public static EnvironmentConfig FromConfigFile(string configFileName)
         {
@@ -38,6 +41,10 @@ namespace Bonsai.Scripting.Python
                 if (line.StartsWith("home"))
                 {
                     config.PythonHome = GetConfigValue(line);
+                }
+                else if (line.StartsWith("include-system-site-packages"))
+                {
+                    config.IncludeSystemSitePackages = bool.Parse(GetConfigValue(line));
                 }
                 else if (line.StartsWith("version"))
                 {

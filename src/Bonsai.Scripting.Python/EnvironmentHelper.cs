@@ -80,6 +80,11 @@ namespace Bonsai.Scripting.Python
                 }
 
                 sitePackages = Path.Combine(config.Path, "Lib", "site-packages");
+                if (config.IncludeSystemSitePackages && config.Path != config.PythonHome)
+                {
+                    var systemSitePackages = Path.Combine(config.PythonHome, "Lib", "site-packages");
+                    sitePackages = $"{sitePackages}{Path.PathSeparator}{systemSitePackages}";
+                }
             }
             else
             {
@@ -92,6 +97,13 @@ namespace Bonsai.Scripting.Python
                 }
 
                 sitePackages = Path.Combine(config.Path, "lib", $"python{config.PythonVersion}", "site-packages");
+                if (config.IncludeSystemSitePackages)
+                {
+                    var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var localFolder = Directory.GetParent(localAppData).FullName;
+                    var systemSitePackages = Path.Combine(localFolder, "lib", $"python{config.PythonVersion}", "site-packages");
+                    sitePackages = $"{sitePackages}{Path.PathSeparator}{systemSitePackages}";
+                }
             }
 
             return $"{basePath}{Path.PathSeparator}{config.Path}{Path.PathSeparator}{sitePackages}";
