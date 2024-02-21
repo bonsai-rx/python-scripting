@@ -7,11 +7,11 @@ namespace Bonsai.Scripting.Python
 {
     static class EnvironmentHelper
     {
-        public static string GetPythonDLL(string pythonVersion)
+        public static string GetPythonDLL(EnvironmentConfig config)
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? $"python{pythonVersion.Replace(".", string.Empty)}.dll"
-                : $"libpython{pythonVersion}.so";
+                ? $"python{config.PythonVersion.Replace(".", string.Empty)}.dll"
+                : $"libpython{config.PythonVersion}.so";
         }
 
         public static void SetRuntimePath(string pythonHome)
@@ -24,7 +24,7 @@ namespace Bonsai.Scripting.Python
             }
         }
 
-        public static string GetVirtualEnvironmentPath(string path)
+        public static string GetEnvironmentPath(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -35,42 +35,36 @@ namespace Bonsai.Scripting.Python
             return Path.GetFullPath(path);
         }
 
-        public static string GetPythonHome(string path, out string pythonVersion)
+        public static EnvironmentConfig GetEnvironmentConfig(string path)
         {
-            var pythonHome = path;
-            pythonVersion = string.Empty;
             var configFileName = Path.Combine(path, "pyvenv.cfg");
             if (File.Exists(configFileName))
             {
-                using var configReader = new StreamReader(File.OpenRead(configFileName));
-                while (!configReader.EndOfStream)
-                {
-                    var line = configReader.ReadLine();
-                    static string GetConfigValue(string line)
-                    {
-                        var parts = line.Split('=');
-                        return parts.Length > 1 ? parts[1].Trim() : string.Empty;
-                    }
-
-                    if (line.StartsWith("home"))
-                    {
-                        pythonHome = GetConfigValue(line);
-                    }
-                    else if (line.StartsWith("version"))
-                    {
-                        pythonVersion = GetConfigValue(line);
-                        if (!string.IsNullOrEmpty(pythonVersion))
-                        {
-                            pythonVersion = pythonVersion.Substring(0, pythonVersion.LastIndexOf('.'));
-                        }
-                    }
-                }
+                return EnvironmentConfig.FromConfigFile(configFileName);
             }
+            else
+            {
+                var pythonHome = path;
+                var pythonVersion = string.Empty;
+                const string DefaultPythonName = "python";
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var baseDirectory = Directory.GetParent(path).Parent;
+                    pythonHome = Path.Combine(baseDirectory.FullName, "bin");
+                }
 
-            return pythonHome;
+                var pythonName = Path.GetFileName(path);
+                var pythonVersionIndex = pythonName.LastIndexOf(DefaultPythonName, StringComparison.OrdinalIgnoreCase);
+                if (pythonVersionIndex >= 0)
+                {
+                    pythonVersion = pythonName.Substring(pythonVersionIndex + DefaultPythonName.Length);
+                }
+
+                return new EnvironmentConfig(pythonHome, pythonVersion);
+            }
         }
 
-        public static string GetPythonPath(string pythonHome, string pythonVersion, string path)
+        public static string GetPythonPath(EnvironmentConfig config)
         {
             string sitePackages;
             var basePath = PythonEngine.PythonPath;
@@ -79,28 +73,28 @@ namespace Bonsai.Scripting.Python
             {
                 if (string.IsNullOrEmpty(basePath))
                 {
-                    var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
-                    var pythonDLLs = Path.Combine(pythonHome, "DLLs");
-                    var pythonLib = Path.Combine(pythonHome, "Lib");
+                    var pythonZip = Path.Combine(config.PythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
+                    var pythonDLLs = Path.Combine(config.PythonHome, "DLLs");
+                    var pythonLib = Path.Combine(config.PythonHome, "Lib");
                     basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
                 }
 
-                sitePackages = Path.Combine(path, "Lib", "site-packages");
+                sitePackages = Path.Combine(config.Path, "Lib", "site-packages");
             }
             else
             {
                 if (string.IsNullOrEmpty(basePath))
                 {
-                    var pythonBase = Path.GetDirectoryName(pythonHome);
-                    pythonBase = Path.Combine(pythonBase, "lib", $"python{pythonVersion}");
+                    var pythonBase = Path.GetDirectoryName(config.PythonHome);
+                    pythonBase = Path.Combine(pythonBase, "lib", $"python{config.PythonVersion}");
                     var pythonLibDynload = Path.Combine(pythonBase, "lib-dynload");
                     basePath = string.Join(Path.PathSeparator.ToString(), pythonBase, pythonLibDynload, baseDirectory);
                 }
 
-                sitePackages = Path.Combine(path, "lib", $"python{pythonVersion}", "site-packages");
+                sitePackages = Path.Combine(config.Path, "lib", $"python{config.PythonVersion}", "site-packages");
             }
 
-            return $"{basePath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
+            return $"{basePath}{Path.PathSeparator}{config.Path}{Path.PathSeparator}{sitePackages}";
         }
     }
 }
