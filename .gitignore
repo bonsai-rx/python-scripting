@@ -3,3 +3,6 @@ bin
 obj
 *.user
 *.suo
+.venv
+.bonsai
+*.layout
