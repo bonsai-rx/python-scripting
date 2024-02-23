@@ -28,10 +28,7 @@ namespace Bonsai.Scripting.Python
             {
                 Initialize(pythonHome);
                 threadState = PythonEngine.BeginAllowThreads();
-                using (Py.GIL())
-                {
-                    MainModule = CreateModule(scriptPath: scriptPath);
-                }
+                MainModule = CreateModule(scriptPath: scriptPath);
                 observer.OnNext(this);
             });
         }
@@ -122,7 +119,6 @@ namespace Bonsai.Scripting.Python
                 PythonEngine.PythonHome = config.PythonHome;
                 if (config.PythonHome != path)
                 {
-                    var version = PythonEngine.Version;
                     PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(config);
                 }
                 PythonEngine.Initialize();
