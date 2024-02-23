@@ -6,6 +6,7 @@ using System;
 using System.Reflection;
 using System.Linq;
 using Python.Runtime;
+using System.Reactive;
 
 namespace Bonsai.Scripting.Python
 {
@@ -46,18 +47,22 @@ namespace Bonsai.Scripting.Python
 
         static IObservable<TResult> Process<TSource, TResult>(IObservable<TSource> source, Func<IObservable<TSource>, IObservable<TResult>> selector)
         {
-            lock(_lock)
+            var gilProtectedSource = Observable.Create<TSource>(observer =>
             {
-                return source.SelectMany(value =>
-                {
-                    using (Py.GIL())
+                var sourceObserver = Observer.Create<TSource>(
+                    value =>
                     {
-                        return selector(Observable.Return(value));
-                        // );
-                    }
-                });
-            }
-            // return result;
+                        using (Py.GIL())
+                        {
+                            observer.OnNext(value); //locking around downstream effects
+                        }
+                    },
+                    observer.OnError,
+                    observer.OnCompleted);
+                return source.SubscribeSafe(observer);
+            });
+
+            return selector(gilProtectedSource);
         }
     }
 }
