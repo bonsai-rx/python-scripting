@@ -51,10 +51,14 @@ namespace Bonsai.Scripting.Python
             if (string.IsNullOrEmpty(path))
             {
                 path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
-                if (path == null) return FindPythonHome();
+                path ??= FindPythonHome();
+            }
+            else
+            {
+                path = Path.GetFullPath(path);
             }
 
-            return Path.GetFullPath(path);
+            return PathHelper.TrimEndingDirectorySeparator(path);
         }
 
         public static EnvironmentConfig GetEnvironmentConfig(string path)
