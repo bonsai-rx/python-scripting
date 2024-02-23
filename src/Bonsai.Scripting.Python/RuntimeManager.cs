@@ -28,10 +28,7 @@ namespace Bonsai.Scripting.Python
             {
                 Initialize(pythonHome);
                 threadState = PythonEngine.BeginAllowThreads();
-                using (Py.GIL())
-                {
-                    MainModule = CreateModule(scriptPath: scriptPath);
-                }
+                MainModule = CreateModule(scriptPath: scriptPath);
                 observer.OnNext(this);
             });
         }
