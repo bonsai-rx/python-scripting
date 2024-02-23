@@ -49,11 +49,11 @@ namespace Bonsai.Scripting.Python
             {
                 return source.Do(value =>
                 {
-                    // using (Py.GIL())
-                    // {
+                    using (Py.GIL())
+                    {
                         var module = Module ?? runtime.MainModule;
                         module.Set(VariableName, value);
-                    // }
+                    }
                 });
             });
         }
