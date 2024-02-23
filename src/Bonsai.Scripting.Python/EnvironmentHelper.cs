@@ -1,241 +1,134 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using Python.Runtime;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
 {
     static class EnvironmentHelper
     {
-
-        private static string GetFirstFile(string path, string pattern, HashSet<string> visitedDirectories = null)
+        public static string GetPythonDLL(EnvironmentConfig config)
         {
-            visitedDirectories ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            try
-            {
-                var dirInfo = new DirectoryInfo(path);
-
-                // Check if the current directory is a symbolic link
-                if ((dirInfo.Attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint)
-                {
-                    return null;
-                }
-
-                // Avoid revisiting the same directory
-                if (!visitedDirectories.Add(path))
-                {
-                    return null;
-                }
-
-                var files = Directory.GetFiles(path, pattern, SearchOption.TopDirectoryOnly);
-                if (files.Length > 0)
-                {
-                    return files[0]; // Return the full path of the first found file
-                }
-
-                foreach (var directory in Directory.GetDirectories(path))
-                {
-                    var file = GetFirstFile(directory, pattern, visitedDirectories);
-                    if (!string.IsNullOrEmpty(file))
-                    {
-                        return file; // Return the full path of the first found file in subdirectories
-                    }
-                }
-            }
-            catch (UnauthorizedAccessException) { }
-            catch (IOException) { } // Handle exceptions related to symbolic links and access issues
-
-            return null; // Return null if no file is found
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? $"python{config.PythonVersion.Replace(".", string.Empty)}.dll"
+                : $"libpython{config.PythonVersion}.so";
         }
 
-        public static string GetPythonDLL(string pythonHome, string pythonVersion)
+        public static void SetRuntimePath(string pythonHome)
         {
-            string searchPath = pythonHome;
-            string searchPattern;
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                pythonVersion = pythonVersion.Replace(".", "");
-                searchPattern = $"python{pythonVersion}.dll";
+                var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
+                path = string.IsNullOrEmpty(path) ? pythonHome : pythonHome + Path.PathSeparator + path;
+                Environment.SetEnvironmentVariable("PATH", path, EnvironmentVariableTarget.Process);
             }
-            else 
-            {
-                searchPath = Path.GetDirectoryName(searchPath);
-                searchPattern = $"libpython{pythonVersion}.so";
-            }
-            return GetFirstFile(searchPath, searchPattern);
         }
 
-        public static bool GetIncludeSystemSitePackages(string path)
+        static string FindPythonHome()
         {
-            bool includeGlobalPackages = true;
+            var systemPath = Environment.GetEnvironmentVariable("PATH");
+            var searchPaths = systemPath.Split(Path.PathSeparator);
+            var isRunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var pythonExecutableName = isRunningOnWindows ? "python.exe" : "python3";
 
-            var configFileName = !string.IsNullOrEmpty(path) ? Path.Combine(path, "pyvenv.cfg") : null;
-            if (File.Exists(configFileName))
+            var pythonHome = Array.Find(searchPaths, path => File.Exists(Path.Combine(path, pythonExecutableName)));
+            if (pythonHome != null && !isRunningOnWindows && MonoHelper.IsRunningOnMono)
             {
-                using var configReader = new StreamReader(File.OpenRead(configFileName));
-                while (!configReader.EndOfStream)
+                var pythonExecutablePath = Path.Combine(pythonHome, pythonExecutableName);
+                pythonExecutablePath = MonoHelper.GetRealPath(pythonExecutablePath);
+                var baseDirectory = Directory.GetParent(pythonExecutablePath).Parent;
+                if (baseDirectory != null)
                 {
-                    var line = configReader.ReadLine();
-                    if (line.StartsWith("include-system-site-packages"))
-                    {
-                        includeGlobalPackages = bool.Parse(line.Split('=')[1].Trim()) ;
-                        break;
-                    }
+                    pythonHome = Path.Combine(baseDirectory.FullName, "lib", Path.GetFileName(pythonExecutablePath));
                 }
             }
 
-            return includeGlobalPackages;
-        }
-
-        public static string GetPythonHome(string path)
-        {
-            string pythonHome = null;
-
-            var configFileName = !string.IsNullOrEmpty(path) ? Path.Combine(path, "pyvenv.cfg") : null;
-            if (File.Exists(configFileName))
-            {
-                using var configReader = new StreamReader(File.OpenRead(configFileName));
-                while (!configReader.EndOfStream)
-                {
-                    var line = configReader.ReadLine();
-                    if (line.StartsWith("home"))
-                    {
-                        var parts = line.Split('=');
-                        pythonHome = parts[parts.Length - 1].Trim();
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                string pythonExecutableName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "python.exe" : "python3";
-
-                var systemPath = Environment.GetEnvironmentVariable("PATH");
-                var paths = systemPath.Split(Path.PathSeparator);
-
-                var pythonExecutableHome = paths.Select(p => Path.Combine(p, pythonExecutableName))
-                                    .FirstOrDefault(File.Exists);
-
-                if (pythonExecutableHome != null)
-                {
-                    pythonHome = Path.GetDirectoryName(pythonExecutableHome);
-                }
-
-            }
             return pythonHome;
         }
 
-        public static string GetPythonVersion(string path, string pythonHome)
+        public static string GetEnvironmentPath(string path)
         {
-            string version = "0.0";
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+                if (path == null) return FindPythonHome();
+            }
 
-            var configFileName = !string.IsNullOrEmpty(path) ? Path.Combine(path, "pyvenv.cfg") : null;
+            return Path.GetFullPath(path);
+        }
+
+        public static EnvironmentConfig GetEnvironmentConfig(string path)
+        {
+            var configFileName = Path.Combine(path, "pyvenv.cfg");
             if (File.Exists(configFileName))
             {
-                using var configReader = new StreamReader(File.OpenRead(configFileName));
-                while (!configReader.EndOfStream)
+                return EnvironmentConfig.FromConfigFile(configFileName);
+            }
+            else
+            {
+                var pythonHome = path;
+                var pythonVersion = string.Empty;
+                const string DefaultPythonName = "python";
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    var line = configReader.ReadLine();
-                    if (line.StartsWith("version"))
-                    {
-                        var parts = line.Split('=')[1].Trim().Split('.');
-                        version = $"{parts[0]}.{parts[1]}";
-                        break;
-                    }
+                    var baseDirectory = Directory.GetParent(path).Parent;
+                    pythonHome = Path.Combine(baseDirectory.FullName, "bin");
                 }
-            }
-            else
-            {
-                var pythonExecutableRegex = new Regex(@"python3(\d+)?(\.\d+)?", RegexOptions.IgnoreCase);
 
-                var filesAndDirs = Directory.EnumerateFileSystemEntries(pythonHome);
-                foreach (var entry in filesAndDirs)
+                var pythonName = Path.GetFileName(path);
+                var pythonVersionIndex = pythonName.LastIndexOf(DefaultPythonName, StringComparison.OrdinalIgnoreCase);
+                if (pythonVersionIndex >= 0)
                 {
-                    var name = Path.GetFileName(entry);
-                    var match = pythonExecutableRegex.Match(name);
-                    if (match.Success)
-                    {
-                        var matchedVersion = match.Value.Replace("python", "").Replace("Python", "");
-                        if (String.Compare(matchedVersion, version) > 0)
-                        {
-                            version = matchedVersion;
-                        }
-                    }
-                }                
-            }
-            return version != "0.0" ? version : null;
-        }
+                    pythonVersion = pythonName.Substring(pythonVersionIndex + DefaultPythonName.Length);
+                }
 
-        public static void SetRuntimePath(string pythonHome, string path, string pythonVersion)
-        {
-            string systemPath = Environment.GetEnvironmentVariable("PATH")!.TrimEnd(Path.PathSeparator);
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                systemPath = string.IsNullOrEmpty(systemPath) ? pythonHome : pythonHome + Path.PathSeparator + systemPath;
-                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process); 
-            }
-            else
-            {
-                systemPath = string.IsNullOrEmpty(systemPath) ? Path.Combine(path, "bin") : Path.Combine(path, "bin") + Path.PathSeparator + systemPath;
-                Environment.SetEnvironmentVariable("PATH", systemPath, EnvironmentVariableTarget.Process);
-                Environment.SetEnvironmentVariable("PYTHONHOME", path, EnvironmentVariableTarget.Process);
-                var pythonBase = Path.GetDirectoryName(pythonHome);
-                Environment.SetEnvironmentVariable("PYTHONPATH", string.Join(Path.PathSeparator.ToString(),
-                    path,
-                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}.zip"),
-                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}"),
-                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}", "lib-dynload"),
-                    Path.Combine(pythonBase, "lib", $"python{pythonVersion}", "site-packages")), EnvironmentVariableTarget.Process);   
+                return new EnvironmentConfig(pythonHome, pythonVersion);
             }
         }
 
-        public static string GetVirtualEnvironmentPath(string path)
+        public static string GetPythonPath(EnvironmentConfig config)
         {
-            if (!string.IsNullOrEmpty(path)) 
-            {
-                Environment.SetEnvironmentVariable("VIRTUAL_ENV", path);
-                return path;
-            }
-            var venvPath = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
-            if (string.IsNullOrEmpty(venvPath)) return path;
-            var fullVenvPath = Path.GetFullPath(venvPath);
-            return fullVenvPath;
-        }
-
-        public static void SetVirtualEnvironmentPath(string path)
-        {
-            if (!string.IsNullOrEmpty(path)) 
-            {
-                return;
-            }
-            Environment.SetEnvironmentVariable("VIRTUAL_ENV", path);
-        }
-
-        public static string GetPythonPath(string pythonHome, string path, string basePath, string pythonDLL)
-        {
+            string sitePackages;
+            var basePath = PythonEngine.PythonPath;
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (string.IsNullOrEmpty(basePath))
                 {
-                    var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(pythonDLL, ".zip"));
-                    var pythonDLLs = Path.Combine(pythonHome, "DLLs");
-                    var pythonLib = Path.Combine(pythonHome, "Lib");
-                    var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    var pythonZip = Path.Combine(config.PythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
+                    var pythonDLLs = Path.Combine(config.PythonHome, "DLLs");
+                    var pythonLib = Path.Combine(config.PythonHome, "Lib");
                     basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
                 }
 
-                var sitePackages = Path.Combine(path, "Lib", "site-packages");
-                return $"{basePath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
-            } 
+                sitePackages = Path.Combine(config.Path, "Lib", "site-packages");
+                if (config.IncludeSystemSitePackages && config.Path != config.PythonHome)
+                {
+                    var systemSitePackages = Path.Combine(config.PythonHome, "Lib", "site-packages");
+                    sitePackages = $"{sitePackages}{Path.PathSeparator}{systemSitePackages}";
+                }
+            }
             else
             {
-                return basePath + Path.PathSeparator + Environment.GetEnvironmentVariable("PYTHONPATH", EnvironmentVariableTarget.Process);
+                if (string.IsNullOrEmpty(basePath))
+                {
+                    var pythonBase = Path.GetDirectoryName(config.PythonHome);
+                    pythonBase = Path.Combine(pythonBase, "lib", $"python{config.PythonVersion}");
+                    var pythonLibDynload = Path.Combine(pythonBase, "lib-dynload");
+                    basePath = string.Join(Path.PathSeparator.ToString(), pythonBase, pythonLibDynload, baseDirectory);
+                }
+
+                sitePackages = Path.Combine(config.Path, "lib", $"python{config.PythonVersion}", "site-packages");
+                if (config.IncludeSystemSitePackages)
+                {
+                    var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var localFolder = Directory.GetParent(localAppData).FullName;
+                    var systemSitePackages = Path.Combine(localFolder, "lib", $"python{config.PythonVersion}", "site-packages");
+                    sitePackages = $"{sitePackages}{Path.PathSeparator}{systemSitePackages}";
+                }
             }
+
+            return $"{basePath}{Path.PathSeparator}{config.Path}{Path.PathSeparator}{sitePackages}";
         }
     }
 }
