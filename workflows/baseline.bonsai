@@ -4,8 +4,6 @@
                  xmlns:gl="clr-namespace:Bonsai.Shaders;assembly=Bonsai.Shaders"
                  xmlns:res="clr-namespace:Bonsai.Resources;assembly=Bonsai.System"
                  xmlns:rx="clr-namespace:Bonsai.Reactive;assembly=Bonsai.Core"
-                 xmlns:num="clr-namespace:Bonsai.Numerics;assembly=Bonsai.Numerics"
-                 xmlns:p1="clr-namespace:Bonsai.Numerics.Distributions;assembly=Bonsai.Numerics"
                  xmlns:io="clr-namespace:Bonsai.IO;assembly=Bonsai.System"
                  xmlns="https://bonsai-rx.org/2018/workflow">
   <Workflow>
@@ -67,6 +65,11 @@
       <Expression xsi:type="SubscribeSubject">
         <Name>Update</Name>
       </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="IntProperty">
+          <Value>1</Value>
+        </Combinator>
+      </Expression>
       <Expression xsi:type="rx:Accumulate" />
       <Expression xsi:type="rx:Condition">
         <Workflow>
@@ -76,7 +79,7 @@
             </Expression>
             <Expression xsi:type="GreaterThanOrEqual">
               <Operand xsi:type="DoubleProperty">
-                <Value>10</Value>
+                <Value>1000</Value>
               </Operand>
             </Expression>
             <Expression xsi:type="WorkflowOutput" />
@@ -93,58 +96,8 @@
         </Combinator>
       </Expression>
       <Expression xsi:type="WorkflowOutput" />
-      <Expression xsi:type="Combinator">
-        <Combinator xsi:type="num:CreateRandom">
-          <num:Seed>0</num:Seed>
-        </Combinator>
-      </Expression>
-      <Expression xsi:type="Combinator">
-        <Combinator xsi:type="p1:CreateContinuousUniform">
-          <p1:Lower>0</p1:Lower>
-          <p1:Upper>10</p1:Upper>
-        </Combinator>
-      </Expression>
-      <Expression xsi:type="rx:BehaviorSubject">
-        <Name>Dist</Name>
-      </Expression>
       <Expression xsi:type="SubscribeSubject">
         <Name>Update</Name>
-      </Expression>
-      <Expression xsi:type="rx:SelectMany">
-        <Name>BaselineSample</Name>
-        <Workflow>
-          <Nodes>
-            <Expression xsi:type="WorkflowInput">
-              <Name>Source1</Name>
-            </Expression>
-            <Expression xsi:type="SubscribeSubject">
-              <Name>Dist</Name>
-            </Expression>
-            <Expression xsi:type="Combinator">
-              <Combinator xsi:type="rx:WithLatestFrom" />
-            </Expression>
-            <Expression xsi:type="MemberSelector">
-              <Selector>Item2</Selector>
-            </Expression>
-            <Expression xsi:type="Combinator">
-              <Combinator xsi:type="p1:Sample" />
-            </Expression>
-            <Expression xsi:type="Combinator">
-              <Combinator xsi:type="Int64Property">
-                <Value>0</Value>
-              </Combinator>
-            </Expression>
-            <Expression xsi:type="WorkflowOutput" />
-          </Nodes>
-          <Edges>
-            <Edge From="0" To="2" Label="Source1" />
-            <Edge From="1" To="2" Label="Source2" />
-            <Edge From="2" To="3" Label="Source1" />
-            <Edge From="3" To="4" Label="Source1" />
-            <Edge From="4" To="5" Label="Source1" />
-            <Edge From="5" To="6" Label="Source1" />
-          </Edges>
-        </Workflow>
       </Expression>
       <Expression xsi:type="Combinator">
         <Combinator xsi:type="rx:TimeInterval" />
@@ -166,11 +119,9 @@
       <Edge From="7" To="8" Label="Source1" />
       <Edge From="8" To="9" Label="Source1" />
       <Edge From="9" To="10" Label="Source1" />
-      <Edge From="11" To="12" Label="Source1" />
+      <Edge From="10" To="11" Label="Source1" />
       <Edge From="12" To="13" Label="Source1" />
-      <Edge From="14" To="15" Label="Source1" />
-      <Edge From="15" To="16" Label="Source1" />
-      <Edge From="16" To="17" Label="Source1" />
+      <Edge From="13" To="14" Label="Source1" />
     </Edges>
   </Workflow>
 </WorkflowBuilder>
