@@ -92,18 +92,15 @@ namespace Bonsai.Scripting.Python
 
         public static string GetPythonPath(EnvironmentConfig config)
         {
+            string basePath;
             string sitePackages;
-            var basePath = PythonEngine.PythonPath;
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (string.IsNullOrEmpty(basePath))
-                {
-                    var pythonZip = Path.Combine(config.PythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
-                    var pythonDLLs = Path.Combine(config.PythonHome, "DLLs");
-                    var pythonLib = Path.Combine(config.PythonHome, "Lib");
-                    basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
-                }
+                var pythonZip = Path.Combine(config.PythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
+                var pythonDLLs = Path.Combine(config.PythonHome, "DLLs");
+                var pythonLib = Path.Combine(config.PythonHome, "Lib");
+                basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
 
                 sitePackages = Path.Combine(config.Path, "Lib", "site-packages");
                 if (config.IncludeSystemSitePackages && config.Path != config.PythonHome)
@@ -114,13 +111,10 @@ namespace Bonsai.Scripting.Python
             }
             else
             {
-                if (string.IsNullOrEmpty(basePath))
-                {
-                    var pythonBase = Path.GetDirectoryName(config.PythonHome);
-                    pythonBase = Path.Combine(pythonBase, "lib", $"python{config.PythonVersion}");
-                    var pythonLibDynload = Path.Combine(pythonBase, "lib-dynload");
-                    basePath = string.Join(Path.PathSeparator.ToString(), pythonBase, pythonLibDynload, baseDirectory);
-                }
+                var pythonBase = Path.GetDirectoryName(config.PythonHome);
+                pythonBase = Path.Combine(pythonBase, "lib", $"python{config.PythonVersion}");
+                var pythonLibDynload = Path.Combine(pythonBase, "lib-dynload");
+                basePath = string.Join(Path.PathSeparator.ToString(), pythonBase, pythonLibDynload, baseDirectory);
 
                 sitePackages = Path.Combine(config.Path, "lib", $"python{config.PythonVersion}", "site-packages");
                 if (config.IncludeSystemSitePackages)
