@@ -1,63 +1,132 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 using Python.Runtime;
 
 namespace Bonsai.Scripting.Python
 {
     static class EnvironmentHelper
     {
-        public static string GetPythonDLL(string path)
+        public static string GetPythonDLL(EnvironmentConfig config)
         {
-            return Directory
-                .EnumerateFiles(path, searchPattern: "python3?*.*")
-                .Select(Path.GetFileNameWithoutExtension)
-                .Where(match => match.Length > "python3".Length)
-                .Select(match => match.Replace(".", string.Empty))
-                .FirstOrDefault();
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? $"python{config.PythonVersion.Replace(".", string.Empty)}.dll"
+                : $"libpython{config.PythonVersion}.so";
         }
 
         public static void SetRuntimePath(string pythonHome)
         {
-            var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
-            path = string.IsNullOrEmpty(path) ? pythonHome : pythonHome + Path.PathSeparator + path;
-            Environment.SetEnvironmentVariable("PATH", path, EnvironmentVariableTarget.Process);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var path = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process).TrimEnd(Path.PathSeparator);
+                path = string.IsNullOrEmpty(path) ? pythonHome : pythonHome + Path.PathSeparator + path;
+                Environment.SetEnvironmentVariable("PATH", path, EnvironmentVariableTarget.Process);
+            }
         }
 
-        public static string GetPythonHome(string path)
+        static string FindPythonHome()
+        {
+            var systemPath = Environment.GetEnvironmentVariable("PATH");
+            var searchPaths = systemPath.Split(Path.PathSeparator);
+            var isRunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var pythonExecutableName = isRunningOnWindows ? "python.exe" : "python3";
+
+            var pythonHome = Array.Find(searchPaths, path => File.Exists(Path.Combine(path, pythonExecutableName)));
+            if (pythonHome != null && !isRunningOnWindows && MonoHelper.IsRunningOnMono)
+            {
+                var pythonExecutablePath = Path.Combine(pythonHome, pythonExecutableName);
+                pythonExecutablePath = MonoHelper.GetRealPath(pythonExecutablePath);
+                var baseDirectory = Directory.GetParent(pythonExecutablePath).Parent;
+                if (baseDirectory != null)
+                {
+                    pythonHome = Path.Combine(baseDirectory.FullName, "lib", Path.GetFileName(pythonExecutablePath));
+                }
+            }
+
+            return pythonHome;
+        }
+
+        public static string GetEnvironmentPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Environment.GetEnvironmentVariable("VIRTUAL_ENV", EnvironmentVariableTarget.Process);
+                path ??= FindPythonHome();
+            }
+            else
+            {
+                path = Path.GetFullPath(path);
+            }
+
+            return PathHelper.TrimEndingDirectorySeparator(path);
+        }
+
+        public static EnvironmentConfig GetEnvironmentConfig(string path)
         {
             var configFileName = Path.Combine(path, "pyvenv.cfg");
             if (File.Exists(configFileName))
             {
-                using var configReader = new StreamReader(File.OpenRead(configFileName));
-                while (!configReader.EndOfStream)
+                return EnvironmentConfig.FromConfigFile(configFileName);
+            }
+            else
+            {
+                var pythonHome = path;
+                var pythonVersion = string.Empty;
+                const string DefaultPythonName = "python";
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    var line = configReader.ReadLine();
-                    if (line.StartsWith("home"))
-                    {
-                        var parts = line.Split('=');
-                        return parts[parts.Length - 1].Trim();
-                    }
+                    var baseDirectory = Directory.GetParent(path).Parent;
+                    pythonHome = Path.Combine(baseDirectory.FullName, "bin");
+                }
+
+                var pythonName = Path.GetFileName(path);
+                var pythonVersionIndex = pythonName.LastIndexOf(DefaultPythonName, StringComparison.OrdinalIgnoreCase);
+                if (pythonVersionIndex >= 0)
+                {
+                    pythonVersion = pythonName.Substring(pythonVersionIndex + DefaultPythonName.Length);
+                }
+
+                return new EnvironmentConfig(pythonHome, pythonVersion);
+            }
+        }
+
+        public static string GetPythonPath(EnvironmentConfig config)
+        {
+            string basePath;
+            string sitePackages;
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var pythonZip = Path.Combine(config.PythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
+                var pythonDLLs = Path.Combine(config.PythonHome, "DLLs");
+                var pythonLib = Path.Combine(config.PythonHome, "Lib");
+                basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
+
+                sitePackages = Path.Combine(config.Path, "Lib", "site-packages");
+                if (config.IncludeSystemSitePackages && config.Path != config.PythonHome)
+                {
+                    var systemSitePackages = Path.Combine(config.PythonHome, "Lib", "site-packages");
+                    sitePackages = $"{sitePackages}{Path.PathSeparator}{systemSitePackages}";
+                }
+            }
+            else
+            {
+                var pythonBase = Path.GetDirectoryName(config.PythonHome);
+                pythonBase = Path.Combine(pythonBase, "lib", $"python{config.PythonVersion}");
+                var pythonLibDynload = Path.Combine(pythonBase, "lib-dynload");
+                basePath = string.Join(Path.PathSeparator.ToString(), pythonBase, pythonLibDynload, baseDirectory);
+
+                sitePackages = Path.Combine(config.Path, "lib", $"python{config.PythonVersion}", "site-packages");
+                if (config.IncludeSystemSitePackages)
+                {
+                    var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var localFolder = Directory.GetParent(localAppData).FullName;
+                    var systemSitePackages = Path.Combine(localFolder, "lib", $"python{config.PythonVersion}", "site-packages");
+                    sitePackages = $"{sitePackages}{Path.PathSeparator}{systemSitePackages}";
                 }
             }
 
-            return path;
-        }
-
-        public static string GetPythonPath(string pythonHome, string path)
-        {
-            var basePath = PythonEngine.PythonPath;
-            if (string.IsNullOrEmpty(basePath))
-            {
-                var pythonZip = Path.Combine(pythonHome, Path.ChangeExtension(Runtime.PythonDLL, ".zip"));
-                var pythonDLLs = Path.Combine(pythonHome, "DLLs");
-                var pythonLib = Path.Combine(pythonHome, "Lib");
-                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                basePath = string.Join(Path.PathSeparator.ToString(), pythonZip, pythonDLLs, pythonLib, baseDirectory);
-            }
-
-            var sitePackages = Path.Combine(path, "Lib", "site-packages");
-            return $"{basePath}{Path.PathSeparator}{path}{Path.PathSeparator}{sitePackages}";
+            return $"{basePath}{Path.PathSeparator}{config.Path}{Path.PathSeparator}{sitePackages}";
         }
     }
 }
