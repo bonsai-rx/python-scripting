@@ -34,7 +34,7 @@ namespace Bonsai.Scripting.Python
             {
                 throw new InvalidOperationException("There must be at least one input.");
             }
-            var sourceType = source.Type.GetGenericArguments()[0]; // Get TSource from IObservable<TSource>
+            var sourceType = source.Type.GetGenericArguments()[0];
             var factoryParameter = Expression.Parameter(typeof(IObservable<>).MakeGenericType(sourceType), "factoryParam");
 
             return BuildWorkflow(arguments, factoryParameter, selectorBody =>
@@ -47,10 +47,11 @@ namespace Bonsai.Scripting.Python
 
         static IObservable<TResult> Process<TSource, TResult>(IObservable<TSource> source, Func<IObservable<TSource>, IObservable<TResult>> selector)
         {
-            var gilProtectedSource = Observable.Create<TSource>(observer =>
+            return RuntimeManager.RuntimeSource.SelectMany(runtime => 
             {
-                var sourceObserver = Observer.Create<TSource>(
-                    value =>
+                return selector(Observable.Create<TSource>(observer =>
+                {
+                    return source.SubscribeSafe(Observer.Create<TSource>(value =>
                     {
                         using (Py.GIL())
                         {
@@ -58,11 +59,9 @@ namespace Bonsai.Scripting.Python
                         }
                     },
                     observer.OnError,
-                    observer.OnCompleted);
-                return source.SubscribeSafe(observer);
+                    observer.OnCompleted));
+                }));
             });
-
-            return selector(gilProtectedSource);
         }
     }
 }
