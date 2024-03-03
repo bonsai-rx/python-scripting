@@ -18,11 +18,11 @@ namespace Bonsai.Scripting.Python
             {
                 using (Pythonnet.Py.GIL())
                 {
-                    if (!Pythonnet.PyList.IsListType(obj))
+                    if (!Pythonnet.PySequence.IsSequenceType(obj))
                     {
                         throw new ArgumentException("PyObject must be a type of list.");
                     }
-                    return new Pythonnet.PyList(obj);
+                    return Pythonnet.PyList.AsList(obj);
                 }
             });
         }

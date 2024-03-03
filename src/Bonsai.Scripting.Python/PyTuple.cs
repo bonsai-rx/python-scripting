@@ -12,20 +12,20 @@ namespace Bonsai.Scripting.Python
     public class PyTuple
     {
 
-        public IObservable<Pythonnet.PyTuple> Process(IObservable<Pythonnet.PyObject> source)
-        {
-            return source.Select(obj =>
-            {
-                using (Pythonnet.Py.GIL())
-                {
-                    if (!Pythonnet.PyTuple.IsTupleType(obj))
-                    {
-                        throw new ArgumentException("PyObject must be a type of tuple.");
-                    }
-                    return new Pythonnet.PyTuple(obj);
-                }
-            });
-        }
+        // public IObservable<Pythonnet.PyTuple> Process(IObservable<Pythonnet.PyObject> source)
+        // {
+        //     return source.Select(obj =>
+        //     {
+        //         using (Pythonnet.Py.GIL())
+        //         {
+        //             if (!Pythonnet.PySequence.IsSequenceType(obj))
+        //             {
+        //                 throw new ArgumentException("PyObject must be a type of tuple.");
+        //             }
+        //             return Pythonnet.PyTuple.AsTuple(obj);
+        //         }
+        //     });
+        // }
 
         public IObservable<Pythonnet.PyTuple> Process(IObservable<object> source)
         {
@@ -47,7 +47,7 @@ namespace Bonsai.Scripting.Python
 
                         if (!(value is Pythonnet.PyObject))
                         {
-                            throw new ArgumentException($"All elements of the tuple must be of type PyObject. Instead, found {value.GetType()} for Item{i}.");
+                            throw new ArgumentException($"All elements of the tuple must be of type PyObject. Instead, found {value.GetType()} for Item{i+1}.");
                         }
 
                         pyObjects[i] = (Pythonnet.PyObject)value;
