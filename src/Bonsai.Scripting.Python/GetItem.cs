@@ -8,7 +8,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that gets an item from a generic python iterable using either a numbered index, or a string key.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class GetItem
     {
         [Description("The index to get.")]

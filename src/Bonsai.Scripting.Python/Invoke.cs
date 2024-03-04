@@ -8,7 +8,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that will invoke a callable object and pass the given arguments to the call. The input can either be the callable object itself, or can be an object which has a named callable attribute.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class Invoke
     {
         [Description("The name of the callable object to invoke.")]

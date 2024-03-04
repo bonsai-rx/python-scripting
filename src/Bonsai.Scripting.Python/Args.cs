@@ -8,7 +8,11 @@ using System.Reflection;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that takes a sequence of python objects and converts them to a type of PyTuple to pass as arguments to a function.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class Args
     {
         public IObservable<Pythonnet.PyTuple> Process(IObservable<object> source)
@@ -19,9 +23,8 @@ namespace Bonsai.Scripting.Python
                 {
                     if (!(obj is ITuple || obj is IList || obj is Array))
                     {
-                        if (obj is Pythonnet.PyObject)
+                        if (obj is Pythonnet.PyObject pyObj)
                         {
-                            var pyObj = obj as Pythonnet.PyObject;
                             return new Pythonnet.PyTuple(new Pythonnet.PyObject[] {pyObj});
                         }
                         

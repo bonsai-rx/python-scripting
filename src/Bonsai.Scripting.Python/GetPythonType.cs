@@ -5,7 +5,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that gets the type of a python object. Equivalent to calling type(obj) in python.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class GetPythonType
     {
 

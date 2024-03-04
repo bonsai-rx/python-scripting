@@ -8,7 +8,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that gets an attribute from a python object if the attribute exists.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class GetAttr
     {
         [Description("The name of the attribute to get.")]

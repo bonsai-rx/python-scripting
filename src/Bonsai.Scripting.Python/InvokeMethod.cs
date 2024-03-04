@@ -8,7 +8,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that will invoke a method of the object and pass the given arguments to the method.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class InvokeMethod
     {
         [Description("The name of the method to invoke.")]

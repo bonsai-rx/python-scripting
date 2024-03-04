@@ -8,7 +8,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents an operator that will import the name of a package as a user-defined named package into the input module.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Transform)]
     public class Import
     {
         [Description("The name of the package.")]

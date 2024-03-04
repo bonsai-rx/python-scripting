@@ -6,7 +6,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents the creation of an int python data type.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Source)]
     public class PyInt
     {
 
@@ -23,23 +27,8 @@ namespace Bonsai.Scripting.Python
                 }
             });
         }
-
-        public IObservable<Pythonnet.PyInt> Process(IObservable<Pythonnet.PyObject> source)
-        {
-            return source.Select(obj =>
-            {
-                using (Pythonnet.Py.GIL())
-                {
-                    if (!Pythonnet.PyNumber.IsNumberType(obj))
-                    {
-                        throw new ArgumentException("PyObject must be a type of number.");
-                    }
-                    return new Pythonnet.PyInt(obj);
-                }
-            });
-        }
-
-        public IObservable<Pythonnet.PyInt> Process(IObservable<object> source)
+        
+        public IObservable<Pythonnet.PyInt> Process<TSource>(IObservable<TSource> source)
         {
             return source.Select(obj =>
             {

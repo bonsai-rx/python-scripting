@@ -6,7 +6,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents the creation of a string python data type.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Source)]
     public class PyString
     {
 
@@ -24,22 +28,7 @@ namespace Bonsai.Scripting.Python
             });
         }
 
-        public IObservable<Pythonnet.PyString> Process(IObservable<Pythonnet.PyObject> source)
-        {
-            return source.Select(obj =>
-            {
-                using (Pythonnet.Py.GIL())
-                {
-                    if (!Pythonnet.PyString.IsStringType(obj))
-                    {
-                        throw new ArgumentException("PyObject must be a type of string.");
-                    }
-                    return new Pythonnet.PyString(obj);
-                }
-            });
-        }
-
-        public IObservable<Pythonnet.PyString> Process(IObservable<object> source)
+        public IObservable<Pythonnet.PyString> Process<TSource>(IObservable<TSource> source)
         {
             return source.Select(obj =>
             {

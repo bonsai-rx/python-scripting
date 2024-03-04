@@ -6,7 +6,11 @@ using System.Linq;
 
 namespace Bonsai.Scripting.Python
 {
+    /// <summary>
+    /// Represents the creation of a float python data type.
+    /// </summary>
     [Combinator]
+    [WorkflowElementCategory(ElementCategory.Source)]
     public class PyFloat
     {
 
@@ -24,22 +28,7 @@ namespace Bonsai.Scripting.Python
             });
         }
 
-        public IObservable<Pythonnet.PyFloat> Process(IObservable<Pythonnet.PyObject> source)
-        {
-            return source.Select(obj =>
-            {
-                using (Pythonnet.Py.GIL())
-                {
-                    if (!Pythonnet.PyNumber.IsNumberType(obj))
-                    {
-                        throw new ArgumentException("PyObject must be a type of number.");
-                    }
-                    return new Pythonnet.PyFloat(obj);
-                }
-            });
-        }
-
-        public IObservable<Pythonnet.PyFloat> Process(IObservable<object> source)
+        public IObservable<Pythonnet.PyFloat> Process<TSource>(IObservable<TSource> source)
         {
             return source.Select(obj =>
             {
