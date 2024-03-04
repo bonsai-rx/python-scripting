@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.IO;
 using System.Reactive.Linq;
 using Python.Runtime;
 
@@ -34,11 +33,11 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public override IObservable<PyModule> Generate()
         {
-            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
-            {
-                var module = RuntimeManager.CreateModule(Name ?? string.Empty, ScriptPath);
-                return Observable.Return(module);
-            });
+            var name = Name;
+            var scriptPath = ScriptPath;
+            return RuntimeManager.RuntimeSource
+                .ObserveOnGIL()
+                .Select(_ => RuntimeManager.CreateModule(name ?? string.Empty, scriptPath));
         }
     }
 }

@@ -44,17 +44,9 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public override IObservable<PyObject> Process<TSource>(IObservable<TSource> source)
         {
-            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
-            {
-                return source.Select(_ =>
-                {
-                    using (Py.GIL())
-                    {
-                        var module = Module ?? runtime.MainModule;
-                        return module.Eval(Expression);
-                    }
-                });
-            });
+            return RuntimeManager.RuntimeSource
+                .GetModuleOrDefaultAsync(Module)
+                .SelectMany(module => source.Select(_ => module.Eval(Expression)));
         }
 
         /// <summary>
@@ -69,13 +61,7 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public IObservable<PyObject> Process(IObservable<PyModule> source)
         {
-            return source.Select(module =>
-            {
-                using (Py.GIL())
-                {
-                    return module.Eval(Expression);
-                }
-            });
+            return source.Select(module => module.Eval(Expression));
         }
 
         /// <summary>
@@ -90,13 +76,7 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public IObservable<PyObject> Process(IObservable<RuntimeManager> source)
         {
-            return source.Select(runtime =>
-            {
-                using (Py.GIL())
-                {
-                    return runtime.MainModule.Eval(Expression);
-                }
-            });
+            return source.Select(runtime => runtime.MainModule.Eval(Expression));
         }
     }
 }

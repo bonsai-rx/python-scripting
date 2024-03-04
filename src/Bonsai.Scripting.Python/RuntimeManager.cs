@@ -31,8 +31,8 @@ namespace Bonsai.Scripting.Python
                 using (Py.GIL())
                 {
                     MainModule = CreateModule(scriptPath: scriptPath);
+                    observer.OnNext(this);
                 }
-                observer.OnNext(this);
             });
         }
 
@@ -79,24 +79,21 @@ namespace Bonsai.Scripting.Python
 
         internal static DynamicModule CreateModule(string name = "", string scriptPath = "")
         {
-            using (Py.GIL())
+            var module = new DynamicModule(name);
+            if (!string.IsNullOrEmpty(scriptPath))
             {
-                var module = new DynamicModule(name);
-                if (!string.IsNullOrEmpty(scriptPath))
+                try
                 {
-                    try
-                    {
-                        var code = ReadAllText(scriptPath);
-                        module.Exec(code);
-                    }
-                    catch (Exception)
-                    {
-                        module.Dispose();
-                        throw;
-                    }
+                    var code = ReadAllText(scriptPath);
+                    module.Exec(code);
                 }
-                return module;
+                catch (Exception)
+                {
+                    module.Dispose();
+                    throw;
+                }
             }
+            return module;
         }
 
         internal void Schedule(Action action)
@@ -122,7 +119,6 @@ namespace Bonsai.Scripting.Python
                 PythonEngine.PythonHome = config.PythonHome;
                 if (config.PythonHome != path)
                 {
-                    var version = PythonEngine.Version;
                     PythonEngine.PythonPath = EnvironmentHelper.GetPythonPath(config);
                 }
                 PythonEngine.Initialize();

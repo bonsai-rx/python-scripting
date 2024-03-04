@@ -38,11 +38,10 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public override IObservable<PyObject> Generate()
         {
-            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
-            {
-                var module = Module ?? runtime.MainModule;
-                return Observable.Return(module.Get(VariableName));
-            });
+            return RuntimeManager.RuntimeSource
+                .GetModuleOrDefaultAsync(Module)
+                .ObserveOnGIL()
+                .Select(module => module.Get(VariableName));
         }
 
         /// <summary>
@@ -61,17 +60,9 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public IObservable<PyObject> Generate<TSource>(IObservable<TSource> source)
         {
-            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
-            {
-                return source.Select(_ =>
-                {
-                    using (Py.GIL())
-                    {
-                        var module = Module ?? runtime.MainModule;
-                        return module.Get(VariableName);
-                    }
-                });
-            });
+            return RuntimeManager.RuntimeSource
+                .GetModuleOrDefaultAsync(Module)
+                .SelectMany(module => source.Select(_ => module.Get(VariableName)));
         }
 
         /// <summary>
@@ -89,13 +80,7 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public IObservable<PyObject> Process(IObservable<PyModule> source)
         {
-            return source.Select(module =>
-            {
-                using (Py.GIL())
-                {
-                    return module.Get(VariableName);
-                }
-            });
+            return source.Select(module => module.Get(VariableName));
         }
 
         /// <summary>
@@ -112,13 +97,7 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public IObservable<PyObject> Process(IObservable<RuntimeManager> source)
         {
-            return source.Select(runtime =>
-            {
-                using (Py.GIL())
-                {
-                    return runtime.MainModule.Get(VariableName);
-                }
-            });
+            return source.Select(runtime => runtime.MainModule.Get(VariableName));
         }
     }
 }
