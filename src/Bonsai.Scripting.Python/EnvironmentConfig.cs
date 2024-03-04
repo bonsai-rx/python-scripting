@@ -26,17 +26,14 @@ namespace Bonsai.Scripting.Python
 
         public static EnvironmentConfig FromConfigFile(string configFileName)
         {
-            var config = new EnvironmentConfig();
-            config.Path = System.IO.Path.GetDirectoryName(configFileName);
+            var config = new EnvironmentConfig
+            {
+                Path = System.IO.Path.GetDirectoryName(configFileName)
+            };
             using var configReader = new StreamReader(File.OpenRead(configFileName));
             while (!configReader.EndOfStream)
             {
                 var line = configReader.ReadLine();
-                static string GetConfigValue(string line)
-                {
-                    var parts = line.Split('=');
-                    return parts.Length > 1 ? parts[1].Trim() : string.Empty;
-                }
 
                 if (line.StartsWith("home"))
                 {
@@ -58,6 +55,12 @@ namespace Bonsai.Scripting.Python
             }
 
             return config;
+        }
+
+        private static string GetConfigValue(string line)
+        {
+            var parts = line.Split('=');
+            return parts.Length > 1 ? parts[1].Trim() : string.Empty;
         }
     }
 }
