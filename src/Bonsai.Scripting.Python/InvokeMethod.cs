@@ -15,8 +15,8 @@ namespace Bonsai.Scripting.Python
         public string Method { get; set; }
 
         [XmlIgnore]
-        [Description("The parameters to pass to the object.")]
-        public Pythonnet.PyTuple Parameters { get; set; } = null;
+        [Description("The args to pass to the callable.")]
+        public Pythonnet.PyTuple Args { get; set; } = null;
 
         public IObservable<Pythonnet.PyObject> Process(IObservable<Pythonnet.PyObject> source)
         {
@@ -29,8 +29,8 @@ namespace Bonsai.Scripting.Python
             {
                 using (Pythonnet.Py.GIL())
                 {
-                    var parameters = Parameters == null ? new Pythonnet.PyTuple() : Parameters;
-                    return obj.InvokeMethod(Method, parameters);
+                    var args = Args == null ? new Pythonnet.PyTuple() : Args;
+                    return obj.InvokeMethod(Method, args);
                 }
             });
         }

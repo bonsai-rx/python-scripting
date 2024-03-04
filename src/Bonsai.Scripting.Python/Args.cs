@@ -9,24 +9,8 @@ using System.Reflection;
 namespace Bonsai.Scripting.Python
 {
     [Combinator]
-    public class PyTuple
+    public class Args
     {
-
-        // public IObservable<Pythonnet.PyTuple> Process(IObservable<Pythonnet.PyObject> source)
-        // {
-        //     return source.Select(obj =>
-        //     {
-        //         using (Pythonnet.Py.GIL())
-        //         {
-        //             if (!Pythonnet.PySequence.IsSequenceType(obj))
-        //             {
-        //                 throw new ArgumentException("PyObject must be a type of tuple.");
-        //             }
-        //             return Pythonnet.PyTuple.AsTuple(obj);
-        //         }
-        //     });
-        // }
-
         public IObservable<Pythonnet.PyTuple> Process(IObservable<object> source)
         {
             return source.Select(obj =>
@@ -35,7 +19,14 @@ namespace Bonsai.Scripting.Python
                 {
                     if (!(obj is ITuple || obj is IList || obj is Array))
                     {
-                        throw new ArgumentException("Input must be a type of tuple, list, or array.");
+                        // throw new ArgumentException("Input must be a type of tuple, list, or array.");
+                        if (obj is Pythonnet.PyObject)
+                        {
+                            var pyObj = obj as Pythonnet.PyObject;
+                            return new Pythonnet.PyTuple(new Pythonnet.PyObject[] {pyObj});
+                        }
+                        
+                        return new Pythonnet.PyTuple(new Pythonnet.PyObject[] {Pythonnet.PyObject.FromManagedObject(obj)});
                     }
 
                     PropertyInfo[] properties = obj.GetType().GetProperties();
