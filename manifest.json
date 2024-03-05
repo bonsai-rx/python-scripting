@@ -1,0 +1,318 @@
+{
+  "source_base_path": "D:/a/python-scripting/python-scripting/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.CreateModule.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.CreateModule.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.CreateRuntime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.CreateRuntime.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.Eval.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.Eval.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.Exec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.Exec.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.Get.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.Get.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.GetRuntime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.GetRuntime.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.ObserveOnGIL.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.ObserveOnGIL.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.RuntimeManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.RuntimeManager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.Set.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.Set.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bonsai.Scripting.Python.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bonsai.Scripting.Python.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/modules.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/modules.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon.ico",
+      "output": {
+        "resource": {
+          "relative_path": "favicon.ico"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "logo.svg",
+      "output": {
+        "resource": {
+          "relative_path": "logo.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/create-module.bonsai",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/create-module.bonsai"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/create-module.svg",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/create-module.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/create-runtime.bonsai",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/create-runtime.bonsai"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/create-runtime.svg",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/create-runtime.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/exec-eval.bonsai",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/exec-eval.bonsai"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/exec-eval.svg",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/exec-eval.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/get-set.bonsai",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/get-set.bonsai"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/get-set.svg",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/get-set.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/hello-python.bonsai",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/hello-python.bonsai"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/hello-python.svg",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/hello-python.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/share-module.bonsai",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/share-module.bonsai"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "workflows/share-module.svg",
+      "output": {
+        "resource": {
+          "relative_path": "workflows/share-module.svg"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

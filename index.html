@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Introduction | Bonsai.Scripting.Python </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Introduction | Bonsai.Scripting.Python ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="articles/toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/bonsai-rx/python-scripting/blob/main/docs/index.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+  </head>
+
+  <script type="module" src="./public/docfx.min.js"></script>
+
+  <script>
+    const theme = localStorage.getItem('theme') || 'auto'
+    document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+  </script>
+
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="Bonsai - Python Scripting">
+            Bonsai - Python Scripting
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="introduction">Introduction</h1>
+
+<p>The Python Scripting package is a <a href="https://bonsai-rx.org/">Bonsai</a> interface for the <a href="https://www.python.org/">Python</a> programming language. It uses <a href="https://pythonnet.github.io/pythonnet/">Python.NET</a> under the hood to provide a seamless integration between the CPython runtime and data streaming in a Bonsai workflow.</p>
+<p>You can use the Python Scripting package to run native Python scripts, import any module available to Python, and read or write to any variable in a named scope. The package is designed to work with any Python version from 3.7 onwards, and you can also use it in combination with <a href="https://docs.python.org/3/tutorial/venv.html">Python virtual environments</a> to fully isolate your project dependencies.</p>
+<h2 id="how-to-install">How to install</h2>
+<ol>
+<li>Install <a href="https://bonsai-rx.org/">Bonsai</a>.</li>
+<li>From the package manager, search and install the <strong>Bonsai - Python Scripting</strong> package.</li>
+</ol>
+<h2 id="install-python">Install Python</h2>
+<p>In addition to the Python Scripting package you need to have a version of <a href="https://www.python.org/">Python</a> installed in your system. Below are suggested installation steps for Windows and Linux.</p>
+<div class="tabGroup" id="tabgroup_1">
+<ul role="tablist">
+<li role="presentation">
+<a href="#tabpanel_1_windows" role="tab" aria-controls="tabpanel_1_windows" data-tab="windows" tabindex="0" aria-selected="true">Windows</a>
+</li>
+<li role="presentation">
+<a href="#tabpanel_1_linux" role="tab" aria-controls="tabpanel_1_linux" data-tab="linux" tabindex="-1">Linux</a>
+</li>
+</ul>
+<section id="tabpanel_1_windows" role="tabpanel" data-tab="windows">
+
+<p>Download and install the latest <a href="https://www.python.org/downloads/">Python distribution</a>.</p>
+</section>
+<section id="tabpanel_1_linux" role="tabpanel" data-tab="linux" aria-hidden="true" hidden="hidden">
+
+<p>Run the following commands to install the latest stable Python for your operating system:</p>
+<pre><code class="lang-bash">sudo apt install python3
+sudo apt install libpython3-dev
+</code></pre>
+</section>
+</div>
+<h2 id="create-a-python-environment">Create a Python environment</h2>
+<p>We recommend using the <code>venv</code> tool to create virtual environments for running your specific projects. To create a virtual environment you can run the following command from inside the folder where you want to install the environment:</p>
+<pre><code class="lang-ps">python -m venv .venv
+</code></pre>
+<h2 id="create-a-python-runtime">Create a Python runtime</h2>
+<p>The <a class="xref" href="api/Bonsai.Scripting.Python.CreateRuntime.html">CreateRuntime</a> node launches the Python kernel and creates the main global scope for running Python scripts. You must set the <a class="xref" href="api/Bonsai.Scripting.Python.CreateRuntime.html#Bonsai_Scripting_Python_CreateRuntime_PythonHome">PythonHome</a> property to the environment folder (or your Python home directory) before starting the workflow:</p>
+<div class="workflow"><p><img src="workflows/create-runtime.bonsai" alt="CreateRuntime"></p>
+</div>
+<p>Alternatively, you can activate the virtual environment <em>before</em> starting Bonsai. In this case you do not need to specify the Python home directory.</p>
+<div class="TIP">
+<h5>Tip</h5>
+<p>You can set the value of the <a class="xref" href="api/Bonsai.Scripting.Python.CreateRuntime.html#Bonsai_Scripting_Python_CreateRuntime_ScriptPath"><strong>ScriptPath</strong></a> property to specify a main script that will be run when the Python runtime is initialized. This script can be used to import all the main modules to be used in your workflow, or initialize any state variables to be manipulated during execution.</p>
+</div>
+<h2 id="run-python-code">Run Python code</h2>
+<p>The <a class="xref" href="api/Bonsai.Scripting.Python.Eval.html">Eval</a> operator can be used anywhere in your workflow to interact with the Python runtime, just as if you were writing code in the Python REPL:</p>
+<div class="workflow"><p><img src="workflows/hello-python.bonsai" alt="HelloPython"></p>
+</div>
+<p>You can also use the <a class="xref" href="api/Bonsai.Scripting.Python.Exec.html">Exec</a> operator to run Python statements dynamically, for example to import new modules:</p>
+<div class="workflow"><p><img src="workflows/exec-eval.bonsai" alt="HelloPython"></p>
+</div>
+<h2 id="read-and-write-state-variables">Read and write state variables</h2>
+<p>To interface with Python state variables, you can use the <a class="xref" href="api/Bonsai.Scripting.Python.Get.html">Get</a> and <a class="xref" href="api/Bonsai.Scripting.Python.Set.html">Set</a> operators:</p>
+<div class="workflow"><p><img src="workflows/get-set.bonsai" alt="GetSet"></p>
+</div>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>All the operators in the Python Scripting package must run under the Python <a href="https://docs.python.org/3/glossary.html#term-global-interpreter-lock">Global Interpreter Lock</a>. This means that although execution of Python code can be triggered asynchronously anywhere in the workflow, there will be a bottleneck when accessing the interpreter. Because of this, we currently do not recommend running large number of parallel calls to Python.</p>
+</div>
+<h2 id="scripting-extensions">Scripting Extensions</h2>
+<p>Custom script files can be executed when creating the Python runtime with <a class="xref" href="api/Bonsai.Scripting.Python.CreateRuntime.html">CreateRuntime</a> or when creating a new module with <a class="xref" href="api/Bonsai.Scripting.Python.CreateModule.html">CreateModule</a>.</p>
+<p>To edit script files we recommend <a href="https://code.visualstudio.com/">Visual Studio Code</a> and the <a href="https://marketplace.visualstudio.com/items?itemName=ms-python.python">Python extension for Visual Studio Code</a>. If both your virtual environment and your custom Python scripts are placed relative to your main workflow, VS Code can be launched from the Bonsai IDE and will be able to correctly pick up the right environment when editing the scripts.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>These docs are under active development, feel free to contribute by either <a href="https://github.com/bonsai-rx/python-scripting/issues">raising an issue</a> or following the links to <strong>Edit this page</strong>.</p>
+</div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/bonsai-rx/python-scripting/blob/main/docs/index.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          &copy; 2024 Bonsai Foundation CIC and Contributors. Made with <a href="https://dotnet.github.io/docfx">docfx</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
