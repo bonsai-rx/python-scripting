@@ -38,10 +38,9 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public override IObservable<PyObject> Generate()
         {
-            return RuntimeManager.RuntimeSource
-                .GetModuleOrDefaultAsync(Module)
-                .ObserveOnGIL()
-                .Select(module => module.Get(VariableName));
+            return from runtime in RuntimeManager.RuntimeSource.ObserveOnGIL()
+                   let module = Module ?? runtime.MainModule
+                   select module.Get(VariableName);
         }
 
         /// <summary>
@@ -60,9 +59,11 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public IObservable<PyObject> Generate<TSource>(IObservable<TSource> source)
         {
-            return RuntimeManager.RuntimeSource
-                .GetModuleOrDefaultAsync(Module)
-                .SelectMany(module => source.Select(_ => module.Get(VariableName)));
+            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
+            {
+                var module = Module ?? runtime.MainModule;
+                return source.Select(_ => module.Get(VariableName));
+            });
         }
 
         /// <summary>
