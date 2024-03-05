@@ -6,14 +6,30 @@ You can use the Python Scripting package to run native Python scripts, import an
 
 ## How to install
 
-1. Download [Bonsai](https://bonsai-rx.org/).
+1. Install [Bonsai](https://bonsai-rx.org/).
 2. From the package manager, search and install the **Bonsai - Python Scripting** package.
+
+## Install Python
+
+In addition to the Python Scripting package you need to have a version of [Python](https://www.python.org/) installed in your system. Below are suggested installation steps for Windows and Linux.
+
+# [Windows](#tab/windows)
+
+Download and install the latest [Python distribution](https://www.python.org/downloads/).
+
+# [Linux](#tab/linux)
+
+Run the following commands to install the latest stable Python for your operating system:
+
+```bash
+sudo apt install python3
+sudo apt install libpython3-dev
+```
+---
 
 ## Create a Python environment
 
-In addition to the Python Scripting package you need to have a version of [Python](https://www.python.org/) installed in your system. We recommend installing the official distributions and using `venv` to create virtual environments to run your specific projects.
-
-To create a virtual environment you can run the following command from inside the folder where you want to install the environment:
+We recommend using the `venv` tool to create virtual environments for running your specific projects. To create a virtual environment you can run the following command from inside the folder where you want to install the environment:
 
 ```ps
 python -m venv .venv
