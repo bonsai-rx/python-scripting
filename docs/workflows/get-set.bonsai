@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<WorkflowBuilder Version="2.7.1"
+<WorkflowBuilder Version="2.8.1"
                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xmlns:rx="clr-namespace:Bonsai.Reactive;assembly=Bonsai.Core"
                  xmlns:py="clr-namespace:Bonsai.Scripting.Python;assembly=Bonsai.Scripting.Python"
@@ -14,6 +14,9 @@
         </Combinator>
       </Expression>
       <Expression xsi:type="Combinator">
+        <Combinator xsi:type="py:ObserveOnGIL" />
+      </Expression>
+      <Expression xsi:type="Combinator">
         <Combinator xsi:type="py:Set">
           <py:VariableName>time</py:VariableName>
         </Combinator>
@@ -25,6 +28,9 @@
         </Combinator>
       </Expression>
       <Expression xsi:type="Combinator">
+        <Combinator xsi:type="py:ObserveOnGIL" />
+      </Expression>
+      <Expression xsi:type="Combinator">
         <Combinator xsi:type="py:Get">
           <py:VariableName>time</py:VariableName>
         </Combinator>
@@ -32,7 +38,9 @@
     </Nodes>
     <Edges>
       <Edge From="0" To="1" Label="Source1" />
-      <Edge From="2" To="3" Label="Source1" />
+      <Edge From="1" To="2" Label="Source1" />
+      <Edge From="3" To="4" Label="Source1" />
+      <Edge From="4" To="5" Label="Source1" />
     </Edges>
   </Workflow>
 </WorkflowBuilder>

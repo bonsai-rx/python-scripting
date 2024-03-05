@@ -1,5 +1,9 @@
 .vs
+.venv
 bin
 obj
+Packages
+*.exe
+*.exe.*
 *.user
 *.suo

@@ -9,9 +9,7 @@
           "src": "../src"
         }
       ],
-      "dest": "api",
-      "disableGitFeatures": false,
-      "disableDefaultFilter": false
+      "dest": "api"
     }
   ],
   "build": {
@@ -41,6 +39,7 @@
         ]
       }
     ],
+    "output": "_site",
     "overwrite": [
       {
         "files": [
@@ -52,21 +51,25 @@
         ]
       }
     ],
+    "template": [
+      "default",
+      "modern",
+      "bonsai/template",
+      "template"
+    ],
     "globalMetadata": {
+      "_appName": "Bonsai - Python Scripting",
+      "_appTitle": "Bonsai.Scripting.Python",
       "_enableNewTab": true,
+      "_enableSearch": true,
+      "pdf": false,
+      "_appFooter": "&copy; 2024 Bonsai Foundation CIC and Contributors. Made with <a href=\"https://dotnet.github.io/docfx\">docfx</a>",
       "_gitContribute": {
+        "repo": "https://github.com/bonsai-rx/python-scripting",
         "branch": "main",
         "apiSpecFolder": "docs/apidoc"
       }
     },
-    "dest": "_site",
-    "globalMetadataFiles": [],
-    "fileMetadataFiles": [],
-    "template": [
-      "default",
-      "templates/html"
-    ],
-    "postProcessors": [ "ExtractSearchIndex" ],
     "markdownEngineName": "markdig",
     "markdownEngineProperties": {
       "markdigExtensions": [
@@ -74,11 +77,6 @@
         "customcontainers"
       ]
     },
-    "noLangKeyword": false,
-    "keepFileLink": false,
-    "cleanupCacheHistory": false,
-    "disableGitFeatures": false,
-    "xrefService": [ "https://xref.docs.microsoft.com/query?uid={uid}" ],
     "xref": [
       "https://bonsai-rx.org/docs/xrefmap.yml",
       "https://horizongir.github.io/reactive/xrefmap.yml"
