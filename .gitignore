@@ -1,4 +1,5 @@
 .vs
+.venv
 bin
 obj
 Packages

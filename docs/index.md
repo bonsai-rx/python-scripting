@@ -16,7 +16,7 @@ In addition to the Python Scripting package you need to have a version of [Pytho
 To create a virtual environment you can run the following command from inside the folder where you want to install the environment:
 
 ```ps
-python -m venv example-env
+python -m venv .venv
 ```
 
 ## Create a Python runtime
@@ -55,7 +55,7 @@ To interface with Python state variables, you can use the [Get](xref:Bonsai.Scri
 :::
 
 > [!Warning]
-> All the operators in the Python Scripting package run under the Python [Global Interpreter Lock](https://docs.python.org/3/glossary.html#term-global-interpreter-lock). This means that although execution of Python code can be triggered asynchronously anywhere in the workflow, there will be a bottleneck when accessing the interpreter. Because of this, we currently do not recommend running large number of parallel calls to Python.
+> All the operators in the Python Scripting package must run under the Python [Global Interpreter Lock](https://docs.python.org/3/glossary.html#term-global-interpreter-lock). This means that although execution of Python code can be triggered asynchronously anywhere in the workflow, there will be a bottleneck when accessing the interpreter. Because of this, we currently do not recommend running large number of parallel calls to Python.
 
 ## Scripting Extensions
 
