@@ -7,13 +7,6 @@ namespace Bonsai.Scripting.Python
 {
     static class ObservableExtensions
     {
-        public static IObservable<PyModule> GetModuleOrDefaultAsync(this IObservable<RuntimeManager> source, PyModule module)
-        {
-            return module != null
-                ? Observable.Return(module)
-                : source.Select(runtime => runtime.MainModule);
-        }
-
         public static IObservable<TSource> ObserveOnGIL<TSource>(this IObservable<TSource> source)
         {
             return Observable.Create<TSource>(observer =>

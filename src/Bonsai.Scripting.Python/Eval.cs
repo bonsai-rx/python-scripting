@@ -44,9 +44,11 @@ namespace Bonsai.Scripting.Python
         /// </returns>
         public override IObservable<PyObject> Process<TSource>(IObservable<TSource> source)
         {
-            return RuntimeManager.RuntimeSource
-                .GetModuleOrDefaultAsync(Module)
-                .SelectMany(module => source.Select(_ => module.Eval(Expression)));
+            return RuntimeManager.RuntimeSource.SelectMany(runtime =>
+            {
+                var module = Module ?? runtime.MainModule;
+                return source.Select(_ => module.Eval(Expression));
+            });
         }
 
         /// <summary>
